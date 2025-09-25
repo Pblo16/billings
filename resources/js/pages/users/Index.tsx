@@ -1,6 +1,7 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
 import { columns } from '@/pages/bills/columns'
+import { create } from '@/routes/users'
 import { type BreadcrumbItem, type User } from '@/types'
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -11,11 +12,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const UsersIndex = (props: { data: User[] }) => {
   const { data } = props
-  console.log(data)
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={data} route={create().url} />
     </AppLayout>
   )
 }

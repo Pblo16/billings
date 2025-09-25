@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 class UsersController extends Controller
 {
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -19,7 +19,7 @@ class UsersController extends Controller
             'data' => User::all(),
         ]);
     }
-    
+
 
     /**
      * Store a newly created resource in storage.
@@ -38,15 +38,13 @@ class UsersController extends Controller
             'password' => bcrypt('password'), // Default password, should be changed later
         ]);
 
-        return redirect()->route('users')->with('success', 'User created successfully');
+        return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
-    {
-    }
+    public function show(User $user) {}
 
     public function create()
     {
@@ -58,7 +56,7 @@ class UsersController extends Controller
      */
 
     public function edit(User $user)
-    {   
+    {
         return Inertia::render('users/Edit', [
             'data' => $user,
         ]);
@@ -80,7 +78,7 @@ class UsersController extends Controller
             'email' => $validated['email'],
         ]);
 
-        return redirect()->route('bills')->with('success', "User {$user->id} updated successfully");
+        return redirect()->route('users.index')->with('success', "User {$user->id} updated successfully");
     }
 
     /**

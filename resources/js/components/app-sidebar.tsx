@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { dashboard, users } from '@/routes'
+import { dashboard, tenants, users } from '@/routes'
 import { type NavItem, type SharedData } from '@/types'
 import { Link, usePage } from '@inertiajs/react'
 import { LayoutGrid } from 'lucide-react'
@@ -25,6 +25,11 @@ const mainNavItems: NavItem[] = [
   {
     title: 'Users',
     href: users(),
+    icon: LayoutGrid,
+  },
+  {
+    title: 'Tenants',
+    href: tenants(),
     icon: LayoutGrid,
   },
 ]

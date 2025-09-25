@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('universal', []);
+        $middleware->group('tenant', [
+            'universal',
+            \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
