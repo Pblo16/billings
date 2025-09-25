@@ -55,4 +55,5 @@ class BillsController extends Controller
 
         return redirect()->route('bills')->with('success', 'User created successfully');
     }
+
 }

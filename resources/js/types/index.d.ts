@@ -26,6 +26,7 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    tenant: { id: string; data: Record<string, any> } | null;
     sidebarOpen: boolean;
     [key: string]: unknown;
 }
