@@ -18,11 +18,11 @@ import { z } from 'zod'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Bills',
-    href: '/bills',
+    title: 'Users',
+    href: '/users',
   },
   {
-    title: 'Edit',
+    title: 'Create',
     href: '',
   },
 ]
@@ -32,24 +32,23 @@ const formSchema = z.object({
   email: z.email(),
 })
 
-const Edit = ({ data }: { data: any }) => {
+const Edit = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: data.name || '',
-      email: data.email || '',
+      username: '',
+      email: '',
     },
   })
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    return router.put(`/Users/${data.id}`, values)
+    return router.post(`/users`, values)
   }
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <h1>Edit User Page</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <h1>Create User</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
