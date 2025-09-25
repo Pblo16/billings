@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\BillsController;
+use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,9 +12,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
-
-    Route::get('/bills', [BillsController::class, 'index'])->name('bills');
-    Route::post('/bills/{user}/process', [BillsController::class, 'process'])->name('bills.process');
+    
+    // Define specific routes before apiResource to avoid conflicts
+    Route::get('/users/create', [UsersController::class, 'create'])->name('users.create');
+    Route::get('/users/edit/{user}', [UsersController::class, 'edit'])->name('users.edit');
+    Route::apiResource('users', UsersController::class)->name('index', 'users');
 });
 
 require __DIR__.'/settings.php';

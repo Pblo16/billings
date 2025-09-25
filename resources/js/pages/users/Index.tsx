@@ -4,12 +4,12 @@ import { columns } from '@/pages/bills/columns'
 import { type BreadcrumbItem, type User } from '@/types'
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Dashboard',
-    href: '/bills',
+    title: 'Users',
+    href: '/users',
   },
 ]
 
-const BillsIndex = (props: { data: User[] }) => {
+const UsersIndex = (props: { data: User[] }) => {
   const { data } = props
   console.log(data)
 
@@ -20,4 +20,4 @@ const BillsIndex = (props: { data: User[] }) => {
   )
 }
 
-export default BillsIndex
+export default UsersIndex

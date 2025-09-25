@@ -6,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { User } from '@/types'
@@ -84,9 +85,14 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
             <DropdownMenuItem
-              onClick={() => router.get(`/users/edit/${user.id}`)}
+              onClick={() => navigator.clipboard.writeText(String(user.name))}
+            >
+              Copy user name
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => router.get(`/bills/${user.id}/edit`)}
             >
               Edit user
             </DropdownMenuItem>
