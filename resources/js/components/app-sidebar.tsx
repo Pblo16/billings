@@ -11,8 +11,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { bills, dashboard } from '@/routes'
-import { type NavItem } from '@/types'
-import { Link } from '@inertiajs/react'
+import { type NavItem, type SharedData } from '@/types'
+import { Link, usePage } from '@inertiajs/react'
 import { LayoutGrid } from 'lucide-react'
 import AppLogo from './app-logo'
 
@@ -29,9 +29,25 @@ const mainNavItems: NavItem[] = [
   },
 ]
 
+const navTenants: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: dashboard(),
+    icon: LayoutGrid,
+  },
+  {
+    title: 'Bills',
+    href: bills(),
+    icon: LayoutGrid,
+  },
+]
+
 const footerNavItems: NavItem[] = []
 
 export function AppSidebar() {
+  const { tenant } = usePage<SharedData>().props
+  const isTenant = !!tenant?.id
+
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-r-2">
       <SidebarHeader>
@@ -47,7 +63,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={mainNavItems} />
+        <NavMain items={isTenant ? navTenants : mainNavItems} />
       </SidebarContent>
 
       <SidebarFooter>
