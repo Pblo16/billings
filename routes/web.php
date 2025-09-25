@@ -12,11 +12,12 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
-    
+    })->name('dashboard')->middleware(['universal', InitializeTenancyByDomain::class]);
+
     // Define specific routes before apiResource to avoid conflicts
-    Route::get('/users/create', [UsersController::class, 'create'])->name('users.create');
-    Route::get('/users/edit/{user}', [UsersController::class, 'edit'])->name('users.edit');
-    Route::apiResource('users', UsersController::class)->name('index', 'users');
+    Route::get('/users/create', [UsersController::class, 'create'])->name('users.create')->middleware(['universal', InitializeTenancyByDomain::class]);
+    Route::get('/users/edit/{user}', [UsersController::class, 'edit'])->name('users.edit')->middleware(['universal', InitializeTenancyByDomain::class]);
+    Route::apiResource('users', UsersController::class)->name('index', 'users')->middleware(['universal', InitializeTenancyByDomain::class]);
 });
 
 

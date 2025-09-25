@@ -36,8 +36,8 @@ const navTenants: NavItem[] = [
     icon: LayoutGrid,
   },
   {
-    title: 'Bills',
-    href: bills(),
+    title: 'Users',
+    href: users(),
     icon: LayoutGrid,
   },
 ]
