@@ -11,6 +11,11 @@ RUN pnpm install --frozen-lockfile
 
 # Copiar el resto del proyecto y hacer build
 COPY . .
+
+# Forzar APP_ENV para que no falle vite-plugin-wayfinder
+ENV APP_ENV=production
+ENV APP_URL=http://localhost
+
 RUN pnpm build
 
 # Stage 2 - Backend (Laravel + PHP + Composer)
