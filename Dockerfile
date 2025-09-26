@@ -1,14 +1,17 @@
-# Stage 1 - Build Frontend (Vite)
+# Stage 1 - Build Frontend (Vite + pnpm)
 FROM node:22 AS frontend
 WORKDIR /app
 
-# Instalar dependencias
-COPY package*.json ./
-RUN npm ci
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copiar resto del código y compilar
+# Copiar dependencias y lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Copiar el resto del proyecto y hacer build
 COPY . .
-RUN npm run build
+RUN pnpm build
 
 # Stage 2 - Backend (Laravel + PHP + Composer)
 FROM php:8.3-fpm AS backend
@@ -24,16 +27,16 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copiar archivos del proyecto
+# Copiar código de la app
 COPY . .
 
-# Copiar build del frontend
-COPY --from=frontend /app/dist ./public/dist
+# El build de Vite ya está en public/build desde el stage 1
+COPY --from=frontend /app/public/build ./public/build
 
 # Instalar dependencias de PHP para producción
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-# Optimizar Laravel
+# Optimizar caches de Laravel
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear \
