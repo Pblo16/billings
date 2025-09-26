@@ -1,0 +1,27 @@
+# Variables de entorno que debes configurar en Render
+# Ve a tu servicio en Render > Environment > Add Environment Variable
+
+APP_NAME=SGI
+APP_ENV=production
+APP_KEY=base64:tu_app_key_real_aqui
+APP_DEBUG=false
+APP_TIMEZONE=UTC
+APP_URL=https://tu-app.onrender.com
+
+DB_CONNECTION=postgresql
+DB_HOST=dpg-d3bi4or7mgec739ntjk0-a
+DB_PORT=5432
+DB_DATABASE=sgi_secret
+DB_USERNAME=sgi_secret_user
+DB_PASSWORD=password
+
+LOG_CHANNEL=stderr
+
+# Variables adicionales según tu configuración
+MAIL_MAILER=smtp
+# etc...
+
+# IMPORTANTE: 
+# - No incluyas estas variables en el Dockerfile
+# - Configúralas directamente en el panel de Render
+# - Render las inyectará de forma segura en el contenedor
