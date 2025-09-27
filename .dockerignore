@@ -44,12 +44,6 @@ phpunit.xml
 tmp/
 temp/
 
-# Variables de entorno locales
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
 # Cache de herramientas
 .npm
 .eslintcache
