@@ -3,7 +3,7 @@
 /node_modules
 /public/hot
 /public/storage
-/public/build
+# /public/build  # Incluir para deploy con assets pre-compilados
 /resources/js/actions
 /resources/js/routes
 /resources/js/wayfinder
