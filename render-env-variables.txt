@@ -1,19 +1,25 @@
-# Variables de entorno que debes configurar en Render
+# Variables de entorno que debes configurar en Render (según documentación oficial)
 # Ve a tu servicio en Render > Environment > Add Environment Variable
+
+# Configuración según https://docs.render.com/deploy-php-laravel-docker
 
 APP_NAME=SGI
 APP_ENV=production
-APP_KEY=base64:tu_app_key_real_aqui
+APP_KEY=base64:U718pG3vPoGZ5LTo+R+CtfZcWvQ5XTWm1pBZvZgMhE0=
 APP_DEBUG=false
-APP_TIMEZONE=UTC
 APP_URL=https://tu-app.onrender.com
 
-DB_CONNECTION=postgresql
-DB_HOST=dpg-d3bi4or7mgec739ntjk0-a
-DB_PORT=5432
-DB_DATABASE=sgi_secret
-DB_USERNAME=sgi_secret_user
-DB_PASSWORD=password
+# Base de datos (EXACTAMENTE como dice la documentación)
+DATABASE_URL=postgresql://sgi_secret_user:YXv9kv8h1FzEIJzyFOu8dCWmKGBE1JIs@dpg-d3bi4or7mgec739ntjk0-a/sgi_secret
+DB_CONNECTION=pgsql
+
+# Opcional para forzar HTTPS (recomendado)
+ASSET_URL=https://tu-app.onrender.com
+
+# Otras configuraciones
+SESSION_DRIVER=database
+CACHE_STORE=database  
+LOG_CHANNEL=stderr
 
 LOG_CHANNEL=stderr
 
