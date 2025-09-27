@@ -1,16 +1,14 @@
-# Dockerfile optimizado que evita problemas con wayfinder
-# Usa los assets ya compilados localmente
+# Dockerfile siguiendo la documentación oficial de Render
 FROM richarvey/nginx-php-fpm:3.1.6
 
-# Configuración de imagen
+# Configuración de imagen según documentación Render
 ENV SKIP_COMPOSER=1
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
 ENV RUN_SCRIPTS=1
 ENV REAL_IP_HEADER=1
 
-# Configuración Laravel básica
-# Las variables específicas de producción se configurarán en Render
+# Configuración Laravel
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
@@ -18,17 +16,14 @@ ENV LOG_CHANNEL=stderr
 # Permitir composer como root
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Copiar todo el código (incluyendo los assets ya compilados en public/build)
+# Copiar código de la aplicación
 COPY . /var/www/html
+
+# Instalar extensiones PHP que podrían faltar
+RUN apk add --no-cache postgresql-dev && docker-php-ext-install pdo_pgsql
 
 # Instalar dependencias de PHP para producción
 RUN cd /var/www/html && composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-# Limpiar caches y optimizar Laravel
-RUN cd /var/www/html && \
-    php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear
 
 # Ajustar permisos
 RUN chown -R nginx:nginx /var/www/html && \
@@ -39,5 +34,9 @@ RUN chown -R nginx:nginx /var/www/html && \
 RUN mkdir -p /var/www/html/storage/logs && \
     mkdir -p /var/www/html/storage/framework/{cache,sessions,views} && \
     chown -R nginx:nginx /var/www/html/storage
+
+# Copiar y hacer ejecutable el script de deploy
+COPY deploy.sh /opt/deploy.sh
+RUN chmod +x /opt/deploy.sh
 
 CMD ["/start.sh"]
