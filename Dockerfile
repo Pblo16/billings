@@ -1,4 +1,8 @@
 FROM richarvey/nginx-php-fpm:3.1.6
+
+# Copiar configuración de nginx
+COPY conf/nginx-site.conf /etc/nginx/sites-available/default.conf
+
 COPY . .
 
 # Image config
