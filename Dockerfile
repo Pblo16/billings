@@ -19,6 +19,9 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 # Copiar código de la aplicación
 COPY . /var/www/html
 
+# Copiar configuración personalizada de nginx
+COPY nginx.conf /etc/nginx/sites-available/default
+
 # Instalar extensiones PHP que podrían faltar
 RUN apk add --no-cache postgresql-dev && docker-php-ext-install pdo_pgsql
 
