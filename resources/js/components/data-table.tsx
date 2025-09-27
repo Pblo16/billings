@@ -21,11 +21,13 @@ import { Button } from './ui/button'
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  route?: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  route,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -34,16 +36,20 @@ export function DataTable<TData, TValue>({
   })
 
   const handleCreateUser = () => {
-    router.get('/users/create')
+    if (route) {
+      router.get(route)
+    }
   }
 
   return (
     <div className="border rounded-md overflow-hidden">
       <header className="flex justify-between items-center p-4 border-b">
         <h2 className="font-medium text-lg">Data Table</h2>
-        <Button variant="outline" onClick={handleCreateUser}>
-          Add User
-        </Button>
+        {route && (
+          <Button variant="outline" onClick={handleCreateUser}>
+            Add
+          </Button>
+        )}
       </header>
       <Table>
         <TableHeader>

@@ -2,6 +2,9 @@
 echo "Running composer"
 composer install --no-dev --working-dir=/var/www/html
 
+
+pnpm run build
+
 echo "Clearing all caches..."
 php artisan config:clear
 php artisan route:clear
