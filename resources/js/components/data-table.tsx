@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { router } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Button } from './ui/button'
 
 interface DataTableProps<TData, TValue> {
@@ -35,20 +35,14 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
   })
 
-  const handleCreateUser = () => {
-    if (route) {
-      router.get(route)
-    }
-  }
-
   return (
     <div className="border rounded-md overflow-hidden">
       <header className="flex justify-between items-center p-4 border-b">
         <h2 className="font-medium text-lg">Data Table</h2>
         {route && (
-          <Button variant="outline" onClick={handleCreateUser}>
-            Add
-          </Button>
+          <Link href={route} method="get" prefetch>
+            <Button variant="outline">Add</Button>
+          </Link>
         )}
       </header>
       <Table>

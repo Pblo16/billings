@@ -15,8 +15,8 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const formSchema = z.object({
-  username: z.string().min(2).max(50),
-  email: z.email(),
+  name: z.string().min(2).max(50),
+  email: z.string().email(),
 })
 
 export type UserFormData = z.infer<typeof formSchema>
@@ -41,7 +41,7 @@ const UserForm = ({
   const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: user?.name || '',
+      name: user?.name || '',
       email: user?.email || '',
     },
   })
@@ -64,17 +64,20 @@ const UserForm = ({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="username"
+          name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter username" {...field} />
+                <Input placeholder="Enter name" {...field} />
               </FormControl>
-              <FormDescription>
-                This is the user's display name.
-              </FormDescription>
-              <FormMessage />
+              {form.formState.errors.name ? (
+                <FormMessage />
+              ) : (
+                <FormDescription>
+                  This is the user's display name.
+                </FormDescription>
+              )}
             </FormItem>
           )}
         />
@@ -87,12 +90,19 @@ const UserForm = ({
               <FormControl>
                 <Input type="email" placeholder="user@example.com" {...field} />
               </FormControl>
-              <FormDescription>Enter the user's email address.</FormDescription>
-              <FormMessage />
+              {form.formState.errors.email ? (
+                <FormMessage />
+              ) : (
+                <FormDescription>
+                  Enter the user's email address.
+                </FormDescription>
+              )}
             </FormItem>
           )}
         />
-        <Button type="submit">{submitButtonText}</Button>
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
+        </Button>
       </form>
     </Form>
   )

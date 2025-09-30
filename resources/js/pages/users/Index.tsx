@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { columns } from '@/pages/bills/columns'
+import { columns } from '@/pages/users/columns'
 import { type BreadcrumbItem, type User } from '@/types'
 import { create } from '@/routes/users'
 

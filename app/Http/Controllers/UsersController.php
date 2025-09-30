@@ -26,12 +26,12 @@ class UsersController extends Controller
     {
         //
         $validated = $request->validate([
-            'username' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
         ]);
 
         User::create([
-            'name' => $validated['username'],
+            'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt('password'), // Default password, should be changed later
         ]);
@@ -42,11 +42,10 @@ class UsersController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user) {}
 
     public function create()
     {
-        return Inertia::render('users/Create');
+        return Inertia::render('users/Upsert');
     }
 
     /**
@@ -54,8 +53,9 @@ class UsersController extends Controller
      */
     public function edit(User $user)
     {
-        return Inertia::render('users/Edit', [
+        return Inertia::render('users/Upsert', [
             'data' => $user,
+            'mode' => 'edit',
         ]);
     }
 
@@ -66,12 +66,12 @@ class UsersController extends Controller
     {
         //
         $validated = $request->validate([
-            'username' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
         ]);
 
         $user->update([
-            'name' => $validated['username'],
+            'name' => $validated['name'],
             'email' => $validated['email'],
         ]);
 

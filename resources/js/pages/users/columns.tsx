@@ -9,12 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User } from '@/types'
-import { router } from '@inertiajs/react'
+import { UserWithAvatar } from '@/types'
+import { Link } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
-
-type UserWithAvatar = User & { avatar?: string | null }
 
 function getInitials(nameOrEmail: string | null | undefined) {
   const base = (nameOrEmail ?? '').trim()
@@ -58,13 +56,13 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
           <img
             src={src}
             alt={displayName}
-            className="h-8 w-8 rounded-full object-cover"
+            className="rounded-full w-8 h-8 object-cover"
           />
         )
       }
       const initials = getInitials(displayName)
       return (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700 dark:bg-neutral-700 dark:text-white">
+        <div className="flex justify-center items-center bg-neutral-200 dark:bg-neutral-700 rounded-full w-8 h-8 font-medium text-neutral-700 dark:text-white text-xs">
           {initials}
         </div>
       )
@@ -78,23 +76,18 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="p-0 w-8 h-8">
               <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(String(user.name))}
-            >
-              Copy user name
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => router.get(`/bills/${user.id}/edit`)}
-            >
-              Edit user
+            <DropdownMenuItem>
+              <Link href={`/users/edit/${user.id}`} className="w-full" prefetch>
+                Edit user
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
