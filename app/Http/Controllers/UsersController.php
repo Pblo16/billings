@@ -75,7 +75,7 @@ class UsersController extends Controller
             'email' => $validated['email'],
         ]);
 
-        return redirect()->route('bills')->with('success', "User {$user->id} updated successfully");
+        return redirect()->route('users')->with('success', "User {$user->id} updated successfully");
     }
 
     /**

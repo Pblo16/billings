@@ -13,7 +13,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const UsersIndex = (props: { data: User[] }) => {
   const { data } = props
-  console.log(data)
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>

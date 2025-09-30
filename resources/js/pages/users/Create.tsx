@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types'
 import UserForm from './UserForm'
+import AppForm from '@/components/app-form'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -17,7 +18,9 @@ const Create = () => {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <h1>Create User</h1>
-      <UserForm submitButtonText="Create User" />
+      <AppForm>
+        <UserForm submitButtonText="Create User" />
+      </AppForm>
     </AppLayout>
   )
 }
