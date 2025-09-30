@@ -41,7 +41,7 @@ class MakeInertiaCrud extends Command
             'name' => $model,
             'plural' => $plural,
             'pluralLower' => Str::lower($plural),
-            'model' => $model,
+            'model' => basename(str_replace('\\', '/', $model)),
         ]);
 
         $this->info("Modelo {$model}, controlador {$controller} y vistas Inertia creadas en {$viewPath}");
