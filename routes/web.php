@@ -12,7 +12,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
-    
+
     // Define specific routes before apiResource to avoid conflicts
     Route::get('/users/create', [UsersController::class, 'create'])->name('users.create');
     Route::get('/users/edit/{user}', [UsersController::class, 'edit'])->name('users.edit');

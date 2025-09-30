@@ -8,7 +8,6 @@ use Inertia\Inertia;
 
 class UsersController extends Controller
 {
-    
     /**
      * Display a listing of the resource.
      */
@@ -19,7 +18,6 @@ class UsersController extends Controller
             'data' => User::all(),
         ]);
     }
-    
 
     /**
      * Store a newly created resource in storage.
@@ -44,9 +42,7 @@ class UsersController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
-    {
-    }
+    public function show(User $user) {}
 
     public function create()
     {
@@ -56,9 +52,8 @@ class UsersController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-
     public function edit(User $user)
-    {   
+    {
         return Inertia::render('users/Edit', [
             'data' => $user,
         ]);
