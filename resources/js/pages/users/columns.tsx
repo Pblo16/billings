@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,6 +15,8 @@ import { UserWithAvatar } from '@/types'
 import { Link, router } from '@inertiajs/react'
 import { ColumnDef, TableMeta } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
+import { Alert } from '@/components/ui/alert'
+import AppActionAlert from '@/components/app-action-alert'
 
 function getInitials(nameOrEmail: string | null | undefined) {
   const base = (nameOrEmail ?? '').trim()
@@ -22,11 +25,6 @@ function getInitials(nameOrEmail: string | null | undefined) {
   if (parts.length === 0) return base.slice(0, 2).toUpperCase()
   const [a, b] = [parts[0]?.[0], parts[1]?.[0]]
   return `${a ?? ''}${b ?? ''}`.toUpperCase() || base.slice(0, 2).toUpperCase()
-}
-
-// Define a TableMeta shape used by DataTable: it provides a requestDelete callback
-type UsersTableMeta = TableMeta<UserWithAvatar> & {
-  requestDelete?: (user: UserWithAvatar) => void
 }
 
 export const columns: ColumnDef<UserWithAvatar, any>[] = [
@@ -78,37 +76,41 @@ export const columns: ColumnDef<UserWithAvatar, any>[] = [
     id: 'actions',
     cell: ({ row, table }) => {
       const user = row.original
-      // requestDelete is passed via cell context from DataTable
-      const meta = table.options.meta as UsersTableMeta | undefined
-      const requestDelete = meta?.requestDelete
+      const [open, setOpen] = useState(false)
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="p-0 w-8 h-8">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={edit(user.id)} className="w-full">
-                Edit user
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Button
-                variant="destructive"
-                onClick={() => requestDelete && requestDelete(user)}
-                className="w-full"
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="p-0 w-8 h-8">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem>
+                <Link href={edit(user.id)} className="w-full">
+                  Edit user
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setOpen(true)
+                }}
               >
                 Delete user
-              </Button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AppActionAlert
+            query={destroy(user.id).url}
+            open={open}
+            setOpen={setOpen}
+          />
+        </>
       )
     },
   },
