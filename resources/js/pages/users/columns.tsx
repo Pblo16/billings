@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { destroy, edit } from '@/routes/users'
+import { destroy, edit, show } from '@/routes/users'
 import { UserWithAvatar } from '@/types'
 import { Link, router } from '@inertiajs/react'
 import { ColumnDef, TableMeta } from '@tanstack/react-table'
@@ -76,11 +76,12 @@ export const columns: ColumnDef<UserWithAvatar, any>[] = [
     id: 'actions',
     cell: ({ row, table }) => {
       const user = row.original
-      const [open, setOpen] = useState(false)
-
+      const [openDialog, setOpenDialog] = useState(false)
+      const [openMenu, setOpenMenu] = useState(false)
+      const [query, setQuery] = useState(null as string | null)
       return (
         <>
-          <DropdownMenu>
+          <DropdownMenu open={openMenu} onOpenChange={setOpenMenu}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="p-0 w-8 h-8">
                 <span className="sr-only">Open menu</span>
@@ -98,7 +99,9 @@ export const columns: ColumnDef<UserWithAvatar, any>[] = [
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault()
-                  setOpen(true)
+                  setOpenMenu(false)
+                  setOpenDialog(true)
+                  setQuery(show(user.id).url)
                 }}
               >
                 Delete user
@@ -106,9 +109,9 @@ export const columns: ColumnDef<UserWithAvatar, any>[] = [
             </DropdownMenuContent>
           </DropdownMenu>
           <AppActionAlert
-            query={destroy(user.id).url}
-            open={open}
-            setOpen={setOpen}
+            query={query}
+            open={openDialog}
+            setOpen={setOpenDialog}
           />
         </>
       )

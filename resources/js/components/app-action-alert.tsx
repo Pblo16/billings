@@ -11,7 +11,7 @@ import {
 import { router } from '@inertiajs/react'
 
 interface AppActionAlertProps {
-  query: string
+  query: string | null
   open: boolean
   setOpen: (open: boolean) => void
 }
@@ -36,7 +36,7 @@ const AppActionAlert = ({ query, open, setOpen }: AppActionAlertProps) => {
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
-              handleDelete(query)
+              query && handleDelete(query)
               setOpen(false)
             }}
           >
