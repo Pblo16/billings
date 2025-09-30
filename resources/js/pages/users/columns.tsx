@@ -85,7 +85,7 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Link href={`/users/edit/${user.id}`} className="w-full" prefetch>
+              <Link href={`/users/edit/${user.id}`} className="w-full">
                 Edit user
               </Link>
             </DropdownMenuItem>

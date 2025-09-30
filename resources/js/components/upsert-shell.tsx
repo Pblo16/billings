@@ -1,4 +1,3 @@
-import AppForm from '@/components/app-form'
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types'
 import React from 'react'
@@ -8,7 +7,7 @@ interface UpsertShellProps {
   breadcrumbs?: BreadcrumbItem[]
   mode?: 'create' | 'edit'
   data?: any
-  children: React.ReactElement
+  children: React.ReactNode
   childPropName?: string // prop name to pass the data under, default 'data'
   submitButtonText?: (isEdit: boolean) => string
 }
@@ -40,7 +39,7 @@ const UpsertShell = ({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <h1>{computedTitle}</h1>
-      <AppForm>{React.cloneElement(children, injectedProps)}</AppForm>
+      {children}
     </AppLayout>
   )
 }
