@@ -28,12 +28,13 @@ class UsersController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8',
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => bcrypt('password'), // Default password, should be changed later
+            'password' => bcrypt($validated['password']),
         ]);
 
         return redirect()->route('users')->with('success', 'User created successfully');
@@ -68,12 +69,20 @@ class UsersController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'password' => 'nullable|string|min:8',
         ]);
 
-        $user->update([
+        $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
-        ]);
+        ];
+
+        // Only update password if provided
+        if (!empty($validated['password'])) {
+            $updateData['password'] = bcrypt($validated['password']);
+        }
+
+        $user->update($updateData);
 
         return redirect()->route('users')->with('success', "User {$user->id} updated successfully");
     }

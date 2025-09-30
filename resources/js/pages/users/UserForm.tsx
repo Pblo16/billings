@@ -14,18 +14,26 @@ import { router } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-const formSchema = z.object({
+const baseFormSchema = z.object({
   name: z.string().min(2).max(50),
-  email: z.string().email(),
+  email: z.email(),
+  password: z.string().optional(),
 })
 
-export type UserFormData = z.infer<typeof formSchema>
+const createFormSchema = z.object({
+  name: z.string().min(2).max(50),
+  email: z.email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+export type UserFormData = z.infer<typeof baseFormSchema>
 
 interface UserFormProps {
   user?: {
     id?: number
     name?: string
     email?: string
+    password?: string
   }
   isEdit?: boolean
   onSubmit?: (values: UserFormData) => void
@@ -38,11 +46,14 @@ const UserForm = ({
   onSubmit,
   submitButtonText = 'Submit',
 }: UserFormProps) => {
+  const formSchema = isEdit ? baseFormSchema : createFormSchema
+
   const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: user?.name || '',
       email: user?.email || '',
+      password: user?.password || '',
     },
   })
 
@@ -95,6 +106,43 @@ const UserForm = ({
               ) : (
                 <FormDescription>
                   Enter the user's email address.
+                </FormDescription>
+              )}
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Password{' '}
+                {isEdit && (
+                  <span className="text-muted-foreground text-sm">
+                    (optional)
+                  </span>
+                )}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder={
+                    isEdit
+                      ? 'Leave blank to keep current password'
+                      : 'Enter password'
+                  }
+                  {...field}
+                />
+              </FormControl>
+              {form.formState.errors.password ? (
+                <FormMessage />
+              ) : (
+                <FormDescription>
+                  {isEdit
+                    ? 'Leave empty to keep the current password, or enter a new one to change it.'
+                    : "Enter the user's password (minimum 8 characters)."}
                 </FormDescription>
               )}
             </FormItem>
