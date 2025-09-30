@@ -1,98 +1,115 @@
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { Form } from '@/components/ui/form'
+import FormFieldRenderer from '@/components/ui/form-field-renderer'
+import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { FormFieldConfig, UserWithAvatar } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { router } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-const formSchema = z.object({
-  username: z.string().min(2).max(50),
+const baseFormSchema = z.object({
+  name: z.string().min(2).max(50),
   email: z.email(),
+  password: z.string().optional(),
 })
 
-export type UserFormData = z.infer<typeof formSchema>
+const createFormSchema = z.object({
+  name: z.string().min(2).max(50),
+  email: z.email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+export type UserFormData = z.infer<typeof baseFormSchema>
+
+const formFieldsConfig: FormFieldConfig[] = [
+  {
+    name: 'name',
+    label: 'Name',
+    type: 'text',
+    placeholder: {
+      create: 'Enter name',
+      edit: 'Enter name',
+    },
+    description: {
+      create: "This is the user's display name.",
+      edit: "This is the user's display name.",
+    },
+  },
+  {
+    name: 'email',
+    label: 'Email',
+    type: 'email',
+    placeholder: {
+      create: 'user@example.com',
+      edit: 'user@example.com',
+    },
+    description: {
+      create: "Enter the user's email address.",
+      edit: "Enter the user's email address.",
+    },
+  },
+  {
+    name: 'password',
+    label: 'Password',
+    type: 'password',
+    placeholder: {
+      create: 'Enter password',
+      edit: 'Leave blank to keep current password',
+    },
+    description: {
+      create: "Enter the user's password (minimum 8 characters).",
+      edit: 'Leave empty to keep the current password, or enter a new one to change it.',
+    },
+    optional: true,
+  },
+]
 
 interface UserFormProps {
-  user?: {
-    id?: number
-    name?: string
-    email?: string
-  }
+  data: UserWithAvatar | null
   isEdit?: boolean
   onSubmit?: (values: UserFormData) => void
   submitButtonText?: string
 }
 
 const UserForm = ({
-  user,
+  data,
   isEdit = false,
   onSubmit,
   submitButtonText = 'Submit',
 }: UserFormProps) => {
+  const formSchema = isEdit ? baseFormSchema : createFormSchema
+
   const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: user?.name || '',
-      email: user?.email || '',
+      name: data?.name || '',
+      email: data?.email || '',
+      password: data?.password || '',
     },
   })
 
-  const handleSubmit = (values: UserFormData) => {
-    if (onSubmit) {
-      onSubmit(values)
-    } else {
-      // Default behavior
-      if (isEdit && user?.id) {
-        router.put(`/users/${user.id}`, values)
-      } else {
-        router.post('/users', values)
-      }
-    }
-  }
+  const { handleSubmit } = useFormSubmit<UserFormData>({
+    onSubmit,
+    isEdit,
+    entityId: data?.id,
+    entityPath: 'users',
+  })
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter username" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is the user's display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="user@example.com" {...field} />
-              </FormControl>
-              <FormDescription>Enter the user's email address.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">{submitButtonText}</Button>
+        {formFieldsConfig.map((fieldConfig) => (
+          <FormFieldRenderer
+            key={fieldConfig.name}
+            control={form.control}
+            fieldConfig={fieldConfig}
+            isEdit={isEdit}
+            errors={form.formState.errors}
+          />
+        ))}
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
+        </Button>
       </form>
     </Form>
   )

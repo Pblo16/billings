@@ -11,7 +11,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const BillsIndex = (props: { data: User[] }) => {
   const { data } = props
-  console.log(data)
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>

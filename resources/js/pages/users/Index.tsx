@@ -1,8 +1,8 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { columns } from '@/pages/bills/columns'
-import { type BreadcrumbItem, type User } from '@/types'
+import { columns } from '@/pages/users/columns'
 import { create } from '@/routes/users'
+import { type BreadcrumbItem, type User } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -11,13 +11,25 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ]
 
+const headerActions = [
+  {
+    label: 'New User',
+    href: create().url,
+    variant: 'outline' as const,
+  },
+  {
+    label: 'open modal',
+    href: '/users/bulk-actions',
+    variant: 'secondary' as const,
+  },
+]
+
 const UsersIndex = (props: { data: User[] }) => {
   const { data } = props
-  console.log(data)
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data} route={create().url}  />
+      <DataTable columns={columns} data={data} header={headerActions} />
     </AppLayout>
   )
 }

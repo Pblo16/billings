@@ -13,11 +13,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    // Define specific routes before apiResource to avoid conflicts
+    // Define specific routes before resource to avoid conflicts
     Route::get('/users/create', [UsersController::class, 'create'])->name('users.create');
     Route::get('/users/edit/{user}', [UsersController::class, 'edit'])->name('users.edit');
-    Route::apiResource('users', UsersController::class)->name('index', 'users');
+
+    // Use regular resource instead of apiResource to include create/edit routes
+    Route::resource('users', UsersController::class)->except(['create', 'edit'])->names([
+        'index' => 'users',
+        'store' => 'users.store',
+        'show' => 'users.show',
+        'update' => 'users.update',
+        'destroy' => 'users.destroy'
+    ]);
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
