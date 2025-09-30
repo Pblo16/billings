@@ -6,7 +6,16 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Table,
   TableBody,
@@ -17,6 +26,7 @@ import {
 } from '@/components/ui/table'
 import { Link } from '@inertiajs/react'
 import { Button } from './ui/button'
+import { useState } from 'react'
 // Define a custom type for header actions
 interface HeaderAction {
   label: string
@@ -24,24 +34,76 @@ interface HeaderAction {
   variant?: 'default' | 'outline' | 'secondary'
 }
 
+interface ConfirmDialogProps {
+  title?: string
+  description?: string
+  confirmLabel?: string
+  cancelLabel?: string
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   route?: string
   header?: HeaderAction[]
+  onDelete?: (row: TData) => void
+  confirmDialogProps?: ConfirmDialogProps
 }
 
-export function DataTable<TData, TValue>({
+import { UserWithAvatar } from '@/types'
+
+export function DataTable({
   columns,
   data,
   route,
   header,
-}: DataTableProps<TData, TValue>) {
+  onDelete,
+  confirmDialogProps,
+}: DataTableProps<UserWithAvatar, any>) {
+  // Dialog state
+  const [open, setOpen] = useState(false)
+  const [selectedRow, setSelectedRow] = useState<UserWithAvatar | null>(null)
+
+  // Handler to trigger dialog from child
+  const handleRequestDelete = (row: UserWithAvatar) => {
+    setSelectedRow(row)
+    setOpen(true)
+  }
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    meta: {
+      requestDelete: handleRequestDelete,
+    },
   })
+
+  // Default dialog props
+  const {
+    title = 'Confirm Deletion',
+    description = 'Are you sure you want to delete this item? This action cannot be undone.',
+    confirmLabel = 'Delete',
+    cancelLabel = 'Cancel',
+  } = confirmDialogProps || {}
+
+  // Handler for confirming delete
+  const handleConfirmDelete = () => {
+    if (selectedRow && onDelete) {
+      onDelete(selectedRow)
+    }
+    setOpen(false)
+    setSelectedRow(null)
+  }
+
+  // Handler for cancel
+  const handleCancel = () => {
+    setOpen(false)
+    setSelectedRow(null)
+  }
+
+  // Pass handleRequestDelete to columns via context
+  // You can use a custom cell renderer in your columns to call handleRequestDelete(row.original)
 
   return (
     <div className="border rounded-md overflow-hidden">
@@ -85,7 +147,10 @@ export function DataTable<TData, TValue>({
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {flexRender(cell.column.columnDef.cell, {
+                      ...cell.getContext(),
+                      requestDelete: () => handleRequestDelete(row.original),
+                    })}
                   </TableCell>
                 ))}
               </TableRow>
@@ -99,6 +164,27 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
+
+      {/* General AlertDialog for delete confirmation */}
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancel}>
+              {cancelLabel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white"
+            >
+              {confirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

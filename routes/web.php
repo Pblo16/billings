@@ -8,20 +8,18 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    // Define specific routes before resource to avoid conflicts
-    Route::get('/users/create', [UsersController::class, 'create'])->name('users.create');
-    Route::get('/users/edit/{user}', [UsersController::class, 'edit'])->name('users.edit');
-
-    // Use regular resource instead of apiResource to include create/edit routes
-    Route::resource('users', UsersController::class)->except(['create', 'edit'])->names([
+    Route::resource('users', UsersController::class)->names([
         'index' => 'users',
+        'create' => 'users.create',
         'store' => 'users.store',
         'show' => 'users.show',
+        'edit' => 'users.edit',
         'update' => 'users.update',
         'destroy' => 'users.destroy'
     ]);

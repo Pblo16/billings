@@ -18,11 +18,6 @@ const headerActions = [
     href: create().url,
     variant: 'outline' as const,
   },
-  {
-    label: 'open modal',
-    href: '/users/bulk-actions',
-    variant: 'secondary' as const,
-  },
 ]
 
 const UsersIndex = (props: { data: User[] }) => {
