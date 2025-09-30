@@ -32,7 +32,7 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
       childPropName="user"
       submitButtonText={(edit) => (edit ? 'Update User' : 'Create User')}
     >
-      <AppForm>{<UserForm isEdit={isEdit} user={data} />}</AppForm>
+      <AppForm>{<UserForm isEdit={isEdit} data={data} />}</AppForm>
     </UpsertShell>
   )
 }

@@ -17,17 +17,25 @@ import {
 } from '@/components/ui/table'
 import { Link } from '@inertiajs/react'
 import { Button } from './ui/button'
+// Define a custom type for header actions
+interface HeaderAction {
+  label: string
+  href: string
+  variant?: 'default' | 'outline' | 'secondary'
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   route?: string
+  header?: HeaderAction[]
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   route,
+  header,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -39,10 +47,14 @@ export function DataTable<TData, TValue>({
     <div className="border rounded-md overflow-hidden">
       <header className="flex justify-between items-center p-4 border-b">
         <h2 className="font-medium text-lg">Data Table</h2>
-        {route && (
-          <Link href={route} method="get" prefetch>
-            <Button variant="outline">Add</Button>
-          </Link>
+        {header && header.length > 0 && (
+          <div className="flex gap-2">
+            {header.map((action, idx) => (
+              <Button asChild key={idx} variant={action.variant || 'default'}>
+                <Link href={action.href}>{action.label}</Link>
+              </Button>
+            ))}
+          </div>
         )}
       </header>
       <Table>

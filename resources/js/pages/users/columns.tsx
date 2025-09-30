@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { UserWithAvatar } from '@/types'
-import { Link } from '@inertiajs/react'
+import { Link, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
 
@@ -21,6 +21,10 @@ function getInitials(nameOrEmail: string | null | undefined) {
   if (parts.length === 0) return base.slice(0, 2).toUpperCase()
   const [a, b] = [parts[0]?.[0], parts[1]?.[0]]
   return `${a ?? ''}${b ?? ''}`.toUpperCase() || base.slice(0, 2).toUpperCase()
+}
+
+const handleDelete = (id: number) => () => {
+  router.delete(`/users/${id}`)
 }
 
 export const columns: ColumnDef<UserWithAvatar>[] = [
@@ -83,11 +87,16 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Link href={`/users/edit/${user.id}`} className="w-full">
                 Edit user
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Button variant="destructive" onClick={handleDelete(user.id)}>
+                Delete user
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

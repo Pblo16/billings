@@ -39,9 +39,31 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
+    password: string | null;
     [key: string]: unknown; // This allows for additional properties...
 }
 
 export interface UserWithAvatar extends User {
     avatar?: string | null;
+}
+
+export interface FormFieldConfig {
+    name: string;
+    label: string;
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local';
+    placeholder: {
+        create: string;
+        edit: string;
+    };
+    description: {
+        create: string;
+        edit: string;
+    };
+    optional?: boolean;
+    validation?: {
+        required?: boolean;
+        minLength?: number;
+        maxLength?: number;
+        pattern?: string;
+    };
 }

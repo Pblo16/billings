@@ -93,6 +93,12 @@ class UsersController extends Controller
     public function destroy(User $user)
     {
         //
-
+        try {
+            $user->delete();
+            return redirect()->route('users')->with('success', 'User deleted successfully');
+        } catch (\Exception $e) {
+            // Log the exception or handle it as needed
+            return redirect()->route('users')->with('error', 'Failed to delete user: ' . $e->getMessage());
+        }
     }
 }
