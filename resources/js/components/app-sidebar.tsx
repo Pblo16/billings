@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { dashboard, users } from '@/routes'
+import { role } from '@/routes/admin/security'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
 import { Cog, LayoutGrid, Shield, Users } from 'lucide-react'
@@ -38,7 +39,12 @@ const mainNavItems: NavMainProps = {
           title: 'Security',
           href: '#',
           icon: Shield,
-          items: [],
+          items: [
+            {
+              title: 'Roles',
+              href: role(),
+            },
+          ],
         },
       ],
     },

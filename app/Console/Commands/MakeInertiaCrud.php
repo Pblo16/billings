@@ -29,6 +29,11 @@ class MakeInertiaCrud extends Command
         $name        = class_basename($model);
         $nameLower   = Str::lower($name);
 
+        // Generar ruta completa para las rutas (ej: admin.security.role)
+        $fullRouteName = ($parentPathLower !== '')
+            ? str_replace('/', '.', $parentPathLower) . '.' . $modelLower
+            : $modelLower;
+
         // Ejemplo: si quieres usar la ruta padre para vistas => resources/js/pages/Admin/Security/roles
         $viewFolder = ($parentPath !== '') ? "{$parentPathLower}/{$pluralLower}" : $pluralLower;
         $viewPath = resource_path("js/pages/{$viewFolder}");
@@ -48,7 +53,7 @@ class MakeInertiaCrud extends Command
         }
 
         // Crear controlador personalizado
-        $this->createController($model, $controller, $parentPath, $pluralLower, $fields, $modelLower);
+        $this->createController($model, $controller, $parentPath, $parentPathLower, $pluralLower, $fields, $modelLower, $fullRouteName);
 
         // Crear directorio de vistas Inertia si no existe
         if (! is_dir($viewPath)) {
@@ -278,7 +283,7 @@ TS;
         };
     }
 
-    protected function createController(string $model, string $controller, string $parentPath, string $pluralLower, array $fields, string $modelLower): void
+    protected function createController(string $model, string $controller, string $parentPath, string $parentPathLower, string $pluralLower, array $fields, string $modelLower, string $fullRouteName): void
     {
         $controllerPath = ($parentPath !== '')
             ? app_path("Http/Controllers/{$parentPath}/{$controller}.php")
@@ -333,6 +338,7 @@ TS;
 
 namespace {$controllerNamespace};
 
+use App\Http\Controllers\Controller;
 use {$modelNamespace};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -344,7 +350,7 @@ class {$controller} extends Controller
      */
     public function index()
     {
-        return Inertia::render('{$pluralLower}/Index', [
+        return Inertia::render('{$parentPathLower}/{$pluralLower}/Index', [
             'data' => {$model}::all()
         ]);
     }
@@ -354,7 +360,7 @@ class {$controller} extends Controller
      */
     public function create()
     {
-        return Inertia::render('{$pluralLower}/Upsert', [
+        return Inertia::render('{$parentPathLower}/{$pluralLower}/Upsert', [
             'data' => null
         ]);
     }
@@ -370,10 +376,10 @@ class {$controller} extends Controller
             ]);
             {$model}::create(\$validated);
         } catch (\Exception \$e) {
-            return redirect()->back()->withErrors(['error' => 'Error al crear: ' . \$e->getMessage()]);
+            return redirect()->route('{$fullRouteName}')->withErrors(['error' => 'Error al crear: ' . \$e->getMessage()]);
         }
 
-        return redirect()->route('{$modelLower}')->with('success', 'Registro creado exitosamente.');
+        return redirect()->route('{$fullRouteName}')->with('success', 'Registro creado exitosamente.');
     }
 
     /**
@@ -390,7 +396,7 @@ class {$controller} extends Controller
     public function edit(string \$id)
     {
         \$data = {$model}::findOrFail(\$id);
-        return Inertia::render('{$pluralLower}/Upsert', [
+        return Inertia::render('{$parentPathLower}/{$pluralLower}/Upsert', [
             'data' => \$data,
             'mode' => 'edit'
         ]);
@@ -408,10 +414,10 @@ class {$controller} extends Controller
             \$data = {$model}::findOrFail(\$id);
             \$data->update(\$validated);
         } catch (\Exception \$e) {
-            return redirect()->back()->withErrors(['error' => 'Error al actualizar: ' . \$e->getMessage()]);
+            return redirect()->route('{$fullRouteName}')->withErrors(['error' => 'Error al actualizar: ' . \$e->getMessage()]);
         }
         
-        return redirect()->route('{$modelLower}')->with('success', 'Registro actualizado exitosamente.');
+        return redirect()->route('{$fullRouteName}')->with('success', 'Registro actualizado exitosamente.');
     }
 
     /**
@@ -426,7 +432,7 @@ class {$controller} extends Controller
             return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . \$e->getMessage()]);
         }
 
-        return redirect()->route('{$modelLower}')->with('success', 'Registro eliminado exitosamente.');
+        return redirect()->route('{$fullRouteName}')->with('success', 'Registro eliminado exitosamente.');
     }
 }
 PHP;

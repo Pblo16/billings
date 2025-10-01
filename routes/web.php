@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Security\RoleController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
