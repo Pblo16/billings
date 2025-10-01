@@ -34,6 +34,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
+
             $validated = $request->validate([
                 'name' => 'required|string',
                 'price' => 'nullable|numeric|min:0'
@@ -81,7 +82,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
         }
-        
+
         return redirect()->route('products')->with('success', 'Registro actualizado exitosamente.');
     }
 

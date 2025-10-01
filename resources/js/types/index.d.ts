@@ -74,6 +74,17 @@ export interface FormFieldConfig {
         maxLength?: number;
         pattern?: string;
     };
+    // NumberInput specific props (only used when type is 'number')
+    numberInputProps?: {
+        stepper?: number;
+        thousandSeparator?: string;
+        min?: number;
+        max?: number;
+        suffix?: string;
+        prefix?: string;
+        fixedDecimalScale?: boolean;
+        decimalScale?: number;
+    };
 }
 
 export interface Product {

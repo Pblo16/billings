@@ -9,13 +9,13 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const baseFormSchema = z.object({
-  name: z.string(),
-  price: z.number().min(0).optional()
+  name: z.string().min(1, 'Name is required'),
+  price: z.number().min(0).optional(),
 })
 
 const createFormSchema = z.object({
-  name: z.string(),
-  price: z.number().min(0).optional()
+  name: z.string().min(1, 'Name is required'),
+  price: z.number().min(0).optional(),
 })
 
 export type ProductFormData = z.infer<typeof baseFormSchema>
@@ -43,10 +43,19 @@ const formFieldsConfig: FormFieldConfig[] = [
       edit: 'Enter Price',
     },
     description: {
-      create: 'This is the Price field.',
-      edit: 'This is the Price field.',
+      create: 'Enter the product price.',
+      edit: 'Update the product price.',
     },
-  }
+    numberInputProps: {
+      stepper: 0.5, // Incremento/decremento de 0.5
+      thousandSeparator: ',', // Separador de miles
+      min: 0, // Valor mínimo
+      max: 999999, // Valor máximo
+      prefix: '$', // Prefijo ($)
+      decimalScale: 2, // Escala decimal (2 decimales)
+      fixedDecimalScale: true, // Siempre mostrar 2 decimales
+    },
+  },
 ]
 
 interface ProductFormProps {
@@ -68,7 +77,7 @@ const ProductForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: data?.name || '',
-      price: data?.price || 0
+      price: data?.price ? Number(data.price) : 0,
     },
   })
 

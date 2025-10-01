@@ -16,7 +16,6 @@ const headerActions = [
   {
     label: 'New User',
     href: create().url,
-    variant: 'outline' as const,
   },
 ]
 
