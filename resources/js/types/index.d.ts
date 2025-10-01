@@ -111,3 +111,15 @@ export interface RoleForm {
     name: string;
     guard_name: string;
 }
+export interface Provider {
+    id: number;
+    name: string;
+    average?: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ProviderForm {
+    name: string;
+    average?: number;
+}

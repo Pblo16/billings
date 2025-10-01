@@ -13,9 +13,17 @@ import {
 } from '@/components/ui/sidebar'
 import { dashboard, users } from '@/routes'
 import { role } from '@/routes/admin/security'
+import { provider } from '@/routes/control'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
-import { Cog, LayoutGrid, Shield, Users } from 'lucide-react'
+import {
+  Building2,
+  Cog,
+  LayoutGrid,
+  ScanLine,
+  Shield,
+  Users,
+} from 'lucide-react'
 import AppLogo from './app-logo'
 
 const mainNavItems: NavMainProps = {
@@ -45,6 +53,18 @@ const mainNavItems: NavMainProps = {
               href: role(),
             },
           ],
+        },
+      ],
+    },
+    {
+      title: 'Control',
+      href: '#',
+      icon: Building2,
+      items: [
+        {
+          title: 'Providers',
+          href: provider(),
+          icon: ScanLine,
         },
       ],
     },

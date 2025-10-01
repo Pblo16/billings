@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Security\RoleController;
+use App\Http\Controllers\Control\ProviderController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -33,6 +34,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'edit' => 'admin.security.role.edit',
         'update' => 'admin.security.role.update',
         'destroy' => 'admin.security.role.destroy'
+    ]);
+
+    Route::resource('control/provider', ProviderController::class)->names([
+        'index' => 'control.provider',
+        'create' => 'control.provider.create',
+        'store' => 'control.provider.store',
+        'show' => 'control.provider.show',
+        'edit' => 'control.provider.edit',
+        'update' => 'control.provider.update',
+        'destroy' => 'control.provider.destroy'
     ]);
 });
 
