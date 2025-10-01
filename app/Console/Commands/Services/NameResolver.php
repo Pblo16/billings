@@ -35,6 +35,19 @@ class NameResolver
       ? str_replace('/', '.', $parentPathLower) . '.' . $modelLower
       : $modelLower;
 
+    // Generar route path (ej: admin/security/role)
+    $routePath = ($parentPathLower !== '')
+      ? $parentPathLower . '/' . $modelLower
+      : $modelLower;
+
+    // Generar route name (ej: admin.security.role)
+    $routeName = str_replace('/', '.', $routePath);
+
+    // Generar namespace del controlador
+    $controllerNamespace = ($parentPath !== '')
+      ? 'App\\Http\\Controllers\\' . str_replace('/', '\\', $parentPath)
+      : 'App\\Http\\Controllers';
+
     // Ejemplo: si quieres usar la ruta padre para vistas => resources/js/pages/Admin/Security/roles
     $viewFolder = ($parentPath !== '') ? "{$parentPathLower}/{$pluralLower}" : $pluralLower;
     $viewPath = resource_path("js/pages/{$viewFolder}");
@@ -55,6 +68,9 @@ class NameResolver
       'name' => $name,
       'nameLower' => $nameLower,
       'fullRouteName' => $fullRouteName,
+      'routePath' => $routePath,
+      'routeName' => $routeName,
+      'controllerNamespace' => $controllerNamespace,
       'viewFolder' => $viewFolder,
       'viewPath' => $viewPath,
       'modelWithPath' => $modelWithPath,

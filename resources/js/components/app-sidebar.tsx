@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sidebar'
 import { dashboard, users } from '@/routes'
 import { role } from '@/routes/admin/security'
-import { provider } from '@/routes/control'
+import { clients, provider } from '@/routes/control'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
 import {
@@ -64,6 +64,11 @@ const mainNavItems: NavMainProps = {
         {
           title: 'Providers',
           href: provider(),
+          icon: ScanLine,
+        },
+        {
+          title: 'Clients',
+          href: clients(),
           icon: ScanLine,
         },
       ],

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Security\RoleController;
+use App\Http\Controllers\Control\ClientsController;
 use App\Http\Controllers\Control\ProviderController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'edit' => 'control.provider.edit',
         'update' => 'control.provider.update',
         'destroy' => 'control.provider.destroy'
+    ]);
+
+    Route::resource('control/clients', ClientsController::class)->names([
+        'index' => 'control.clients',
+        'create' => 'control.clients.create',
+        'store' => 'control.clients.store',
+        'show' => 'control.clients.show',
+        'edit' => 'control.clients.edit',
+        'update' => 'control.clients.update',
+        'destroy' => 'control.clients.destroy'
     ]);
 });
 

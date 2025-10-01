@@ -8,14 +8,93 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { FormFieldConfig } from '@/types'
-import { Control, FieldValues, Path } from 'react-hook-form'
+import { Control, FieldValues, Path, ControllerRenderProps } from 'react-hook-form'
 import { NumberInput } from '@/components/ui/input-number'
+import { PhoneInput } from '@/components/ui/input-phone'
+import { usePage } from '@inertiajs/react'
+import { useMemo } from 'react'
 
 interface FormFieldRendererProps<T extends FieldValues> {
   control: Control<T>
   fieldConfig: FormFieldConfig
   isEdit?: boolean
-  errors?: Record<string, string | string[]>
+  errors?: Partial<Record<keyof T, any>>
+}
+
+/**
+ * Helper to select the appropriate text based on edit mode
+ */
+const getContextualText = (
+  config: { create: string; edit: string },
+  isEdit: boolean
+): string => {
+  return isEdit ? config.edit : config.create
+}
+
+/**
+ * Renders a standard text/email/password input
+ */
+const renderStandardInput = <T extends FieldValues>(
+  field: ControllerRenderProps<T, Path<T>>,
+  fieldConfig: FormFieldConfig,
+  isEdit: boolean
+) => (
+  <Input
+    type={fieldConfig.type}
+    placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
+    {...field}
+    onChange={(e) => field.onChange(e.target.value)}
+    value={field.value ?? ''}
+  />
+)
+
+/**
+ * Renders a number input with formatting
+ */
+const renderNumberInput = <T extends FieldValues>(
+  field: ControllerRenderProps<T, Path<T>>,
+  fieldConfig: FormFieldConfig,
+  isEdit: boolean
+) => (
+  <NumberInput
+    placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
+    value={field.value}
+    onValueChange={(value) => field.onChange(value)}
+    {...fieldConfig.numberInputProps}
+  />
+)
+
+/**
+ * Renders a phone input with formatting
+ */
+const renderPhoneInput = <T extends FieldValues>(
+  field: ControllerRenderProps<T, Path<T>>,
+  fieldConfig: FormFieldConfig,
+  isEdit: boolean
+) => (
+  <PhoneInput
+    placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
+    value={field.value}
+    onValueChange={(value) => field.onChange(value)}
+  />
+)
+
+/**
+ * Renders the appropriate input based on field type
+ */
+const renderInputByType = <T extends FieldValues>(
+  field: ControllerRenderProps<T, Path<T>>,
+  fieldConfig: FormFieldConfig,
+  isEdit: boolean
+) => {
+  switch (fieldConfig.type) {
+    case 'number':
+      return renderNumberInput(field, fieldConfig, isEdit)
+    case 'phone':
+      return renderPhoneInput(field, fieldConfig, isEdit)
+    default:
+      return renderStandardInput(field, fieldConfig, isEdit)
+  }
 }
 
 const FormFieldRenderer = <T extends FieldValues>({
@@ -24,6 +103,13 @@ const FormFieldRenderer = <T extends FieldValues>({
   isEdit = false,
   errors = {},
 }: FormFieldRendererProps<T>) => {
+  const { errors: serverErrors } = usePage().props as { errors: Record<string, string> }
+
+  // Memoize para evitar re-renders innecesarios
+  const fieldError = useMemo(() => {
+    return serverErrors?.[fieldConfig.name] || null
+  }, [serverErrors, fieldConfig.name])
+
   return (
     <FormField
       control={control}
@@ -39,40 +125,13 @@ const FormFieldRenderer = <T extends FieldValues>({
             )}
           </FormLabel>
           <FormControl>
-            {fieldConfig.type === 'number' ? (
-              <NumberInput
-                placeholder={
-                  isEdit
-                    ? fieldConfig.placeholder.edit
-                    : fieldConfig.placeholder.create
-                }
-                value={field.value}
-                onValueChange={(value) => field.onChange(value)}
-                {...fieldConfig.numberInputProps}
-              />
-            ) : (
-              <Input
-                type={fieldConfig.type}
-                placeholder={
-                  isEdit
-                    ? fieldConfig.placeholder.edit
-                    : fieldConfig.placeholder.create
-                }
-                {...field}
-                onChange={(e) => {
-                  field.onChange(e.target.value)
-                }}
-                value={field.value ?? ''}
-              />
-            )}
+            {renderInputByType(field, fieldConfig, isEdit)}
           </FormControl>
-          {errors[fieldConfig.name] ? (
-            <FormMessage />
+          {fieldError ? (
+            <FormMessage>{fieldError}</FormMessage>
           ) : (
             <FormDescription>
-              {isEdit
-                ? fieldConfig.description.edit
-                : fieldConfig.description.create}
+              {getContextualText(fieldConfig.description, isEdit)}
             </FormDescription>
           )}
         </FormItem>

@@ -58,7 +58,7 @@ export type UserWithAvatar = User & { avatar?: string | null };
 export interface FormFieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local';
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone';
     placeholder: {
         create: string;
         edit: string;
@@ -122,4 +122,16 @@ export interface Provider {
 export interface ProviderForm {
     name: string;
     average?: number;
+}
+export interface Clients {
+    id: number;
+    name: string;
+    phone?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ClientsForm {
+    name: string;
+    phone?: string;
 }
