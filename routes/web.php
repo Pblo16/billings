@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PabloController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'edit' => 'admin.security.role.edit',
         'update' => 'admin.security.role.update',
         'destroy' => 'admin.security.role.destroy'
+    ]);
+
+
+    Route::resource('pablo', PabloController::class)->names([
+        'index' => 'pablo',
+        'create' => 'pablo.create',
+        'store' => 'pablo.store',
+        'show' => 'pablo.show',
+        'edit' => 'pablo.edit',
+        'update' => 'pablo.update',
+        'destroy' => 'pablo.destroy'
     ]);
 });
 

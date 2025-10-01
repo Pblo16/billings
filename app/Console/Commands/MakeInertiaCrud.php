@@ -36,18 +36,19 @@ class MakeInertiaCrud extends Command
         // Solicitar campos para la migración
         $fields = $this->askForFields();
 
-        // Crear modelo + migración
-        $this->call('make:model', ['name' => $model, '-m' => true]);
+        // Crear modelo + migración (con ruta padre si existe)
+        $modelWithPath = ($parentPath !== '') ? "{$parentPath}/{$model}" : $model;
+        $this->call('make:model', ['name' => $modelWithPath, '-m' => true]);
 
         // Modificar la migración con los campos solicitados
         if (!empty($fields)) {
             $this->updateMigration($model, $fields);
-            $this->updateModelFillable($model, $fields);
+            $this->updateModelFillable($model, $parentPath, $fields);
             $this->addTypesToIndexFile($name, $fields);
         }
 
         // Crear controlador personalizado
-        $this->createController($model, $controller, $pluralLower, $fields);
+        $this->createController($model, $controller, $parentPath, $pluralLower, $fields, $modelLower);
 
         // Crear directorio de vistas Inertia si no existe
         if (! is_dir($viewPath)) {
@@ -72,6 +73,7 @@ class MakeInertiaCrud extends Command
             'nameLower'   => $nameLower,
             'parentPath'  => $parentPath,
             'parentPathLower' => $parentPathLower,
+            'routePath'   => ($parentPathLower !== '') ? "{$parentPathLower}/" : '',
         ];
 
         // Generar código de campos para React
@@ -194,9 +196,11 @@ class MakeInertiaCrud extends Command
         $this->info("✅ Migración actualizada con los campos definidos");
     }
 
-    protected function updateModelFillable(string $model, array $fields): void
+    protected function updateModelFillable(string $model, string $parentPath, array $fields): void
     {
-        $modelPath = app_path("Models/{$model}.php");
+        $modelPath = ($parentPath !== '')
+            ? app_path("Models/{$parentPath}/{$model}.php")
+            : app_path("Models/{$model}.php");
 
         if (!file_exists($modelPath)) {
             $this->error("❌ No se encontró el modelo en {$modelPath}");
@@ -274,9 +278,11 @@ TS;
         };
     }
 
-    protected function createController(string $model, string $controller, string $pluralLower, array $fields): void
+    protected function createController(string $model, string $controller, string $parentPath, string $pluralLower, array $fields, string $modelLower): void
     {
-        $controllerPath = app_path("Http/Controllers/{$controller}.php");
+        $controllerPath = ($parentPath !== '')
+            ? app_path("Http/Controllers/{$parentPath}/{$controller}.php")
+            : app_path("Http/Controllers/{$controller}.php");
 
         // Crear directorio si no existe
         $controllerDir = dirname($controllerPath);
@@ -313,12 +319,21 @@ TS;
 
         $validationString = implode(",\n                ", $validationRules);
 
+        // Construir namespace con parent path
+        $controllerNamespace = ($parentPath !== '')
+            ? "App\\Http\\Controllers\\" . str_replace('/', '\\', $parentPath)
+            : "App\\Http\\Controllers";
+
+        $modelNamespace = ($parentPath !== '')
+            ? "App\\Models\\" . str_replace('/', '\\', $parentPath) . "\\{$model}"
+            : "App\\Models\\{$model}";
+
         $controllerContent = <<<PHP
 <?php
 
-namespace App\Http\Controllers;
+namespace {$controllerNamespace};
 
-use App\Models\\{$model};
+use {$modelNamespace};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -358,7 +373,7 @@ class {$controller} extends Controller
             return redirect()->back()->withErrors(['error' => 'Error al crear: ' . \$e->getMessage()]);
         }
 
-        return redirect()->route('{$pluralLower}')->with('success', 'Registro creado exitosamente.');
+        return redirect()->route('{$modelLower}')->with('success', 'Registro creado exitosamente.');
     }
 
     /**
@@ -396,7 +411,7 @@ class {$controller} extends Controller
             return redirect()->back()->withErrors(['error' => 'Error al actualizar: ' . \$e->getMessage()]);
         }
         
-        return redirect()->route('{$pluralLower}')->with('success', 'Registro actualizado exitosamente.');
+        return redirect()->route('{$modelLower}')->with('success', 'Registro actualizado exitosamente.');
     }
 
     /**
@@ -411,7 +426,7 @@ class {$controller} extends Controller
             return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . \$e->getMessage()]);
         }
 
-        return redirect()->route('{$pluralLower}')->with('success', 'Registro eliminado exitosamente.');
+        return redirect()->route('{$modelLower}')->with('success', 'Registro eliminado exitosamente.');
     }
 }
 PHP;

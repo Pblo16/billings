@@ -2,7 +2,7 @@ import { NavFooter } from '@/components/nav-footer'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 
-import { dashboard, products, users } from '@/routes'
+import { dashboard, pablo, products, users } from '@/routes'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
 import {
@@ -51,6 +51,11 @@ const mainNavItems: NavMainProps = {
               title: 'Pruebas',
               href: products(),
               icon: LockKeyholeIcon,
+            },
+            {
+              title: 'Pablo',
+              href: pablo(),
+              icon: Shield,
             },
           ],
         },
