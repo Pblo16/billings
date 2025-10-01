@@ -31,7 +31,7 @@ class MakeInertiaCrud extends Command
         if (!empty($fields)) {
             $this->updateMigration($model, $fields);
             $this->updateModelFillable($model, $fields);
-            $this->addTypesToIndexFile($model, $fields);
+            $this->addTypesToIndexFile($name, $fields);
         }
 
         // Crear controlador personalizado
@@ -144,7 +144,8 @@ class MakeInertiaCrud extends Command
     {
         // Buscar el archivo de migración más reciente
         $migrationPath = database_path('migrations');
-        $files = glob("{$migrationPath}/*_create_" . Str::snake(Str::plural($model)) . "_table.php");
+        $modelBaseName = class_basename($model);
+        $files = glob("{$migrationPath}/*_create_" . Str::snake(Str::plural($modelBaseName)) . "_table.php");
 
         if (empty($files)) {
             $this->error('❌ No se encontró el archivo de migración');
@@ -194,17 +195,20 @@ class MakeInertiaCrud extends Command
         $fillableString = "[\n        " . implode(",\n        ", $fillableFields) . ",\n    ]";
 
         // Buscar el lugar donde insertar fillable (después de "class NombreModelo extends Model")
-        $pattern = '/(class\s+' . $model . '\s+extends\s+Model\s*\{)/';
-        $replacement = "$1\n    protected \$fillable = {$fillableString};\n";
+        $modelBaseName = class_basename($model);
+        $pattern = '/(class\s+' . preg_quote($modelBaseName, '/') . '\s+extends\s+Model\s*\{)/';
+        $fillableCode = "\n    protected \$fillable = {$fillableString};\n";
 
-        $content = preg_replace($pattern, $replacement, $content);
+        $content = preg_replace_callback($pattern, function ($matches) use ($fillableCode) {
+            return $matches[0] . $fillableCode;
+        }, $content);
 
         file_put_contents($modelPath, $content);
 
         $this->info("✅ Modelo actualizado con \$fillable");
     }
 
-    protected function addTypesToIndexFile(string $model, array $fields): void
+    protected function addTypesToIndexFile(string $name, array $fields): void
     {
         $indexFile = resource_path('js/types/index.d.ts');
 
@@ -225,13 +229,13 @@ class MakeInertiaCrud extends Command
 
         $newTypes = <<<TS
 
-export interface {$model} {
+export interface {$name} {
     id: number;
 {$typeDefinitions}    created_at?: string;
     updated_at?: string;
 }
 
-export interface {$model}Form {
+export interface {$name}Form {
 {$typeDefinitions}}
 TS;
 
@@ -258,6 +262,12 @@ TS;
     protected function createController(string $model, string $controller, string $pluralLower, array $fields): void
     {
         $controllerPath = app_path("Http/Controllers/{$controller}.php");
+
+        // Crear directorio si no existe
+        $controllerDir = dirname($controllerPath);
+        if (!is_dir($controllerDir)) {
+            mkdir($controllerDir, 0755, true);
+        }
 
         // Generar reglas de validación
         $validationRules = [];
