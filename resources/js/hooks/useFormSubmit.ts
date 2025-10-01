@@ -13,6 +13,7 @@ export const useFormSubmit = <T extends Record<string, any> = Record<string, any
   entityId,
   entityPath
 }: UseFormSubmitOptions<T>) => {
+  console.log({ entityPath })
   const handleSubmit = (values: T) => {
     if (onSubmit) {
       onSubmit(values)

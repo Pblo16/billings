@@ -1,7 +1,7 @@
 import AppForm from '@/components/app-form'
 import UpsertShell from '@/components/upsert-shell'
 import { BreadcrumbItem } from '@/types'
-import {{name}}Form from './{{name}}Form'
+import PruebaForm from './PruebaForm'
 
 interface UpsertProps {
   data?: any
@@ -10,8 +10,8 @@ interface UpsertProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: '{{plural}}',
-    href: '/{{pluralLower}}',
+    title: 'Test/Uno/Pruebas',
+    href: '/test/uno/pruebas',
   },
 ]
 
@@ -25,17 +25,17 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
 
   return (
     <UpsertShell
-      title={isEdit ? 'Edit {{name}}' : 'Create {{name}}'}
+      title={isEdit ? 'Edit Prueba' : 'Create Prueba'}
       breadcrumbs={pageCrumbs}
       mode={mode}
       data={data}
       childPropName="{{nameLower}}"
       submitButtonText={(edit) =>
-        edit ? 'Update {{name}}' : 'Create {{name}}'
+        edit ? 'Update Prueba' : 'Create Prueba'
       }
     >
       <AppForm>
-        <{{name}}Form isEdit={isEdit} data={data} />
+        <PruebaForm isEdit={isEdit} data={data} />
       </AppForm>
     </UpsertShell>
   )

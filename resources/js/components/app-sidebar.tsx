@@ -24,6 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { pruebas } from '@/routes/test/uno'
 
 const mainNavItems: NavMainProps = {
   navMain: [
@@ -48,8 +49,8 @@ const mainNavItems: NavMainProps = {
           icon: Shield,
           items: [
             {
-              title: 'Permissions',
-              href: users(),
+              title: 'Pruebas',
+              href: pruebas(),
               icon: LockKeyholeIcon,
             },
           ],

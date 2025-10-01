@@ -16,7 +16,7 @@ class MakeInertiaCrud extends Command
         $controller  = "{$model}Controller";
         $plural      = Str::pluralStudly($model);
         $pluralLower = Str::lower($plural);
-        $modelLower  = Str::camel($model);
+        $modelLower  = Str::lower($model);
         $name        = class_basename($model);
 
         $viewPath = resource_path("js/pages/{$pluralLower}");
