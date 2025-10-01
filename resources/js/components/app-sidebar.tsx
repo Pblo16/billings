@@ -1,6 +1,20 @@
 import { NavFooter } from '@/components/nav-footer'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
+
+import { dashboard, users } from '@/routes'
+import { NavMainProps, type NavItem } from '@/types'
+import { Link } from '@inertiajs/react'
+import {
+  Cog,
+  icons,
+  LayoutGrid,
+  LockKeyholeIcon,
+  Shield,
+  User,
+  Users,
+} from 'lucide-react'
+import AppLogo from './app-logo'
 import {
   Sidebar,
   SidebarContent,
@@ -10,25 +24,40 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { dashboard, users } from '@/routes'
-import { type NavItem } from '@/types'
-import { Link } from '@inertiajs/react'
-import { LayoutGrid } from 'lucide-react'
-import AppLogo from './app-logo'
 
-const mainNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: dashboard(),
-    icon: LayoutGrid,
-  },
-  {
-    title: 'Users',
-    href: users(),
-    icon: LayoutGrid,
-  },
-]
-
+const mainNavItems: NavMainProps = {
+  navMain: [
+    {
+      title: 'dashboard',
+      href: dashboard(),
+      icon: LayoutGrid,
+    },
+    {
+      title: 'Admin Panel',
+      href: '#',
+      icon: Cog,
+      items: [
+        {
+          title: 'Users',
+          href: users(),
+          icon: Users,
+        },
+        {
+          title: 'Security',
+          href: '#',
+          icon: Shield,
+          items: [
+            {
+              title: 'Permissions',
+              href: users(),
+              icon: LockKeyholeIcon,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
 const footerNavItems: NavItem[] = []
 
 export function AppSidebar() {
@@ -47,7 +76,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={mainNavItems} />
+        <NavMain data={mainNavItems} />
       </SidebarContent>
 
       <SidebarFooter>

@@ -1,13 +1,14 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
 import { columns } from '@/pages/users/columns'
+import { users } from '@/routes'
 import { create } from '@/routes/users'
 import { type BreadcrumbItem, type User } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Users',
-    href: '/users',
+    href: users().url,
   },
 ]
 
@@ -16,11 +17,6 @@ const headerActions = [
     label: 'New User',
     href: create().url,
     variant: 'outline' as const,
-  },
-  {
-    label: 'open modal',
-    href: '/users/bulk-actions',
-    variant: 'secondary' as const,
   },
 ]
 

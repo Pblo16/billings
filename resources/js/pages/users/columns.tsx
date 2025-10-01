@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -9,10 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { destroy, edit, show } from '@/routes/users'
 import { UserWithAvatar } from '@/types'
 import { Link, router } from '@inertiajs/react'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, TableMeta } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
+import { Alert } from '@/components/ui/alert'
+import AppActionAlert from '@/components/app-action-alert'
 
 function getInitials(nameOrEmail: string | null | undefined) {
   const base = (nameOrEmail ?? '').trim()
@@ -23,11 +27,7 @@ function getInitials(nameOrEmail: string | null | undefined) {
   return `${a ?? ''}${b ?? ''}`.toUpperCase() || base.slice(0, 2).toUpperCase()
 }
 
-const handleDelete = (id: number) => () => {
-  router.delete(`/users/${id}`)
-}
-
-export const columns: ColumnDef<UserWithAvatar>[] = [
+export const columns: ColumnDef<UserWithAvatar, any>[] = [
   {
     accessorKey: 'id',
     header: 'ID',
@@ -52,7 +52,7 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
     id: 'avatar',
     header: 'Avatar',
     cell: ({ row }) => {
-      const user = row.original as UserWithAvatar
+      const user = row.original
       const src = user.avatar ?? undefined
       const displayName = user.name ?? user.email
       if (src) {
@@ -74,32 +74,46 @@ export const columns: ColumnDef<UserWithAvatar>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const user = row.original
-
+      const [openDialog, setOpenDialog] = useState(false)
+      const [openMenu, setOpenMenu] = useState(false)
+      const [query, setQuery] = useState(null as string | null)
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="p-0 w-8 h-8">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={`/users/edit/${user.id}`} className="w-full">
-                Edit user
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Button variant="destructive" onClick={handleDelete(user.id)}>
-                Delete user
+        <>
+          <DropdownMenu open={openMenu} onOpenChange={setOpenMenu}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="p-0 w-8 h-8">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="w-4 h-4" />
               </Button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem>
+                <Link href={edit(user.id)} className="w-full">
+                  Edit user
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setOpenMenu(false)
+                  setOpenDialog(true)
+                  setQuery(show(user.id).url)
+                }}
+              >
+                Delete user
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AppActionAlert
+            query={query}
+            open={openDialog}
+            setOpen={setOpenDialog}
+          />
+        </>
       )
     },
   },

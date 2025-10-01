@@ -1,0 +1,37 @@
+import { DataTable } from '@/components/data-table'
+import AppLayout from '@/layouts/app-layout'
+import { columns } from '@/pages/{{pluralLower}}/columns'
+import { create } from '@/routes/{{pluralLower}}'
+import { type BreadcrumbItem, type {{model}} } from '@/types'
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: '{{plural}}',
+    href: '/{{pluralLower}}',
+  },
+]
+
+const headerActions = [
+  {
+    label: 'New {{model}}',
+    href: create().url,
+    variant: 'outline' as const,
+  },
+  {
+    label: 'Open modal',
+    href: '/{{pluralLower}}/bulk-actions',
+    variant: 'secondary' as const,
+  },
+]
+
+const {{plural}}Index = (props: { data: {{model}}[] }) => {
+  const { data } = props
+
+  return (
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <DataTable columns={columns} data={data} header={headerActions} />
+    </AppLayout>
+  )
+}
+
+export default {{plural}}Index

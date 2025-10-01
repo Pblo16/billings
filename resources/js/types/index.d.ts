@@ -20,6 +20,11 @@ export interface NavItem {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    items?: NavItem[];
+}
+
+export interface NavMainProps {
+    navMain: NavItem[];
 }
 
 export interface SharedData {
@@ -34,7 +39,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    avatar?: string;
+    avatar?: string | null;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;
@@ -43,9 +48,12 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export interface UserWithAvatar extends User {
-    avatar?: string | null;
+export interface UserMethods extends User {
+    requestDelete?: (user: UserMethods) => void;
 }
+
+// Helper type for UI components that include an avatar property
+export type UserWithAvatar = User & { avatar?: string | null };
 
 export interface FormFieldConfig {
     name: string;
