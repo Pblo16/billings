@@ -2,7 +2,7 @@ import { NavFooter } from '@/components/nav-footer'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 
-import { dashboard, users } from '@/routes'
+import { dashboard, products, users } from '@/routes'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
 import {
@@ -24,7 +24,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { pruebas } from '@/routes/test/uno'
 
 const mainNavItems: NavMainProps = {
   navMain: [
@@ -50,7 +49,7 @@ const mainNavItems: NavMainProps = {
           items: [
             {
               title: 'Pruebas',
-              href: pruebas(),
+              href: products(),
               icon: LockKeyholeIcon,
             },
           ],

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Test\Uno\PruebaController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -25,14 +25,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'destroy' => 'users.destroy'
     ]);
 
-    Route::resource('test/uno/pruebas', PruebaController::class)->names([
-        'index' => 'test.uno.pruebas',
-        'create' => 'test.uno.pruebas.create',
-        'store' => 'test.uno.pruebas.store',
-        'show' => 'test.uno.pruebas.show',
-        'edit' => 'test.uno.pruebas.edit',
-        'update' => 'test.uno.pruebas.update',
-        'destroy' => 'test.uno.pruebas.destroy'
+    Route::resource('products', ProductController::class)->names([
+        'index' => 'products',
+        'create' => 'products.create',
+        'store' => 'products.store',
+        'show' => 'products.show',
+        'edit' => 'products.edit',
+        'update' => 'products.update',
+        'destroy' => 'products.destroy'
     ]);
 });
 

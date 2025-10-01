@@ -9,32 +9,17 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const baseFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  // Agrega más campos según lo que necesite {{name}}
+{{zodSchema}}
 })
 
 const createFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  // Campos obligatorios extra para "create"
+{{zodSchema}}
 })
 
 export type {{name}}FormData = z.infer<typeof baseFormSchema>
 
 const formFieldsConfig: FormFieldConfig[] = [
-  {
-    name: 'name',
-    label: 'Name',
-    type: 'text',
-    placeholder: {
-      create: 'Enter name',
-      edit: 'Enter name',
-    },
-    description: {
-      create: "This is the {{name}}'s display name.",
-      edit: "This is the {{name}}'s display name.",
-    },
-  },
-  // 🔧 Puedes duplicar/editar según tus necesidades (email, password, etc.)
+{{formFieldsConfig}}
 ]
 
 interface {{name}}FormProps {
@@ -55,8 +40,7 @@ const {{name}}Form = ({
   const form = useForm<{{name}}FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: data?.name || '',
-      // agrega más defaultValues según corresponda
+{{defaultValues}}
     },
   })
 
