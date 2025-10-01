@@ -165,3 +165,13 @@ export interface PostForm {
     text?: string;
     user_id: number;
 }
+export interface Pablo {
+    id: number;
+    pablo: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PabloForm {
+    pablo: string;
+}

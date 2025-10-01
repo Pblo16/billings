@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Control\DepartmentsController;
 use App\Http\Controllers\Global\PostController;
+use App\Http\Controllers\PabloController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -77,9 +78,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'global.post.update',
         'destroy' => 'global.post.destroy'
     ]);
+    Route::resource('pablo', PabloController::class)->names([
+        'index' => 'pablo',
+        'create' => 'pablo.create',
+        'store' => 'pablo.store',
+        'show' => 'pablo.show',
+        'edit' => 'pablo.edit',
+        'update' => 'pablo.update',
+        'destroy' => 'pablo.destroy'
+    ]);
 });
-
-
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
