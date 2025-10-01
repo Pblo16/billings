@@ -15,7 +15,7 @@ interface FormFieldRendererProps<T extends FieldValues> {
   control: Control<T>
   fieldConfig: FormFieldConfig
   isEdit?: boolean
-  errors?: Record<string, any>
+  errors?: Record<string, string | string[]>
 }
 
 const FormFieldRenderer = <T extends FieldValues>({

@@ -2,19 +2,6 @@ import { NavFooter } from '@/components/nav-footer'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 
-import { dashboard, pablo, products, users } from '@/routes'
-import { NavMainProps, type NavItem } from '@/types'
-import { Link } from '@inertiajs/react'
-import {
-  Cog,
-  icons,
-  LayoutGrid,
-  LockKeyholeIcon,
-  Shield,
-  User,
-  Users,
-} from 'lucide-react'
-import AppLogo from './app-logo'
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +11,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { dashboard, users } from '@/routes'
+import { NavMainProps, type NavItem } from '@/types'
+import { Link } from '@inertiajs/react'
+import { Cog, LayoutGrid, Shield, Users } from 'lucide-react'
+import AppLogo from './app-logo'
 
 const mainNavItems: NavMainProps = {
   navMain: [
@@ -46,18 +38,7 @@ const mainNavItems: NavMainProps = {
           title: 'Security',
           href: '#',
           icon: Shield,
-          items: [
-            {
-              title: 'Pruebas',
-              href: products(),
-              icon: LockKeyholeIcon,
-            },
-            {
-              title: 'Pablo',
-              href: pablo(),
-              icon: Shield,
-            },
-          ],
+          items: [],
         },
       ],
     },

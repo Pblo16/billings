@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import AppActionAlert from '@/components/app-action-alert'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,13 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { destroy, edit, show } from '@/routes/users'
+import { edit, show } from '@/routes/users'
 import { UserWithAvatar } from '@/types'
-import { Link, router } from '@inertiajs/react'
-import { ColumnDef, TableMeta } from '@tanstack/react-table'
+import { Link } from '@inertiajs/react'
+import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
-import { Alert } from '@/components/ui/alert'
-import AppActionAlert from '@/components/app-action-alert'
+import { useState } from 'react'
 
 function getInitials(nameOrEmail: string | null | undefined) {
   const base = (nameOrEmail ?? '').trim()
@@ -27,7 +26,47 @@ function getInitials(nameOrEmail: string | null | undefined) {
   return `${a ?? ''}${b ?? ''}`.toUpperCase() || base.slice(0, 2).toUpperCase()
 }
 
-export const columns: ColumnDef<UserWithAvatar, any>[] = [
+// Actions cell component that can use hooks
+const UserActionsCell = ({ user }: { user: UserWithAvatar }) => {
+  const [openDialog, setOpenDialog] = useState(false)
+  const [openMenu, setOpenMenu] = useState(false)
+  const [query, setQuery] = useState(null as string | null)
+
+  return (
+    <>
+      <DropdownMenu open={openMenu} onOpenChange={setOpenMenu}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="p-0 w-8 h-8">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem>
+            <Link href={edit(user.id)} className="w-full">
+              Edit user
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault()
+              setOpenMenu(false)
+              setOpenDialog(true)
+              setQuery(show(user.id).url)
+            }}
+          >
+            Delete user
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AppActionAlert query={query} open={openDialog} setOpen={setOpenDialog} />
+    </>
+  )
+}
+
+export const columns: ColumnDef<UserWithAvatar, unknown>[] = [
   {
     accessorKey: 'id',
     header: 'ID',
@@ -74,47 +113,9 @@ export const columns: ColumnDef<UserWithAvatar, any>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row, table }) => {
+    cell: ({ row }) => {
       const user = row.original
-      const [openDialog, setOpenDialog] = useState(false)
-      const [openMenu, setOpenMenu] = useState(false)
-      const [query, setQuery] = useState(null as string | null)
-      return (
-        <>
-          <DropdownMenu open={openMenu} onOpenChange={setOpenMenu}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-0 w-8 h-8">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Link href={edit(user.id)} className="w-full">
-                  Edit user
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault()
-                  setOpenMenu(false)
-                  setOpenDialog(true)
-                  setQuery(show(user.id).url)
-                }}
-              >
-                Delete user
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <AppActionAlert
-            query={query}
-            open={openDialog}
-            setOpen={setOpenDialog}
-          />
-        </>
-      )
+      return <UserActionsCell user={user} />
     },
   },
 ]

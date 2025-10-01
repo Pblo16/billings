@@ -1,12 +1,12 @@
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { router } from '@inertiajs/react'
 
@@ -36,7 +36,9 @@ const AppActionAlert = ({ query, open, setOpen }: AppActionAlertProps) => {
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
-              query && handleDelete(query)
+              if (query) {
+                handleDelete(query)
+              }
               setOpen(false)
             }}
           >

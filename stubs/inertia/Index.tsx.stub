@@ -25,7 +25,7 @@ const {{name}}Index = (props: { data: {{name}}[] }) => {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data} header={headerActions} />
+      <DataTable columns={columns} data={data ?? null} header={headerActions} />
     </AppLayout>
   )
 }

@@ -5,7 +5,9 @@
     "singleAttributePerLine": false,
     "htmlWhitespaceSensitivity": "css",
     "printWidth": 80,
-    "plugins": [],
+    "plugins": [
+        "prettier-plugin-organize-imports"
+    ],
     "tailwindFunctions": [
         "clsx",
         "cn"
