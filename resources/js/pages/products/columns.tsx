@@ -18,7 +18,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
 import AppActionAlert from '@/components/app-action-alert'
 
-
 export const columns: ColumnDef<Product, any>[] = [
   {
     accessorKey: 'id',
@@ -29,6 +28,15 @@ export const columns: ColumnDef<Product, any>[] = [
     header: 'Name',
   },
   {
+    accessorKey: 'price',
+    header: 'Price',
+    cell: ({ row }) => {
+      const price = row.getValue('price')
+      return price !== null && price !== undefined ? `$ ${price}` : 'N/A'
+    },
+  },
+  {
+    header: 'Actions',
     id: 'actions',
     cell: ({ row }) => {
       const item = row.original

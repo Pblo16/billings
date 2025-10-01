@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table'
 import { Link } from '@inertiajs/react'
 import { Button } from './ui/button'
+
 // Define a custom type for header actions
 interface HeaderAction {
   label: string
@@ -43,13 +44,13 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="border rounded-md overflow-hidden">
-      <header className="flex justify-between items-center p-4 border-b">
+    <div className="rounded-md overflow-hidden">
+      <header className="flex justify-between items-center py-4 border-b">
         <h2 className="font-medium text-lg">Data Table</h2>
         {header && header.length > 0 && (
           <div className="flex gap-2">
             {header.map((action, idx) => (
-              <Button asChild key={idx} variant={action.variant || 'default'}>
+              <Button asChild key={idx} variant={action.variant || 'secondary'}>
                 <Link href={action.href}>{action.label}</Link>
               </Button>
             ))}

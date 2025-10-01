@@ -9,6 +9,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { FormFieldConfig } from '@/types'
 import { Control, FieldValues, Path } from 'react-hook-form'
+import { NumberInput } from '@/components/ui/input-number'
 
 interface FormFieldRendererProps<T extends FieldValues> {
   control: Control<T>
@@ -38,15 +39,32 @@ const FormFieldRenderer = <T extends FieldValues>({
             )}
           </FormLabel>
           <FormControl>
-            <Input
-              type={fieldConfig.type}
-              placeholder={
-                isEdit
-                  ? fieldConfig.placeholder.edit
-                  : fieldConfig.placeholder.create
-              }
-              {...field}
-            />
+            {fieldConfig.type === 'number' ? (
+              <NumberInput
+                placeholder={
+                  isEdit
+                    ? fieldConfig.placeholder.edit
+                    : fieldConfig.placeholder.create
+                }
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                {...fieldConfig.numberInputProps}
+              />
+            ) : (
+              <Input
+                type={fieldConfig.type}
+                placeholder={
+                  isEdit
+                    ? fieldConfig.placeholder.edit
+                    : fieldConfig.placeholder.create
+                }
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e.target.value)
+                }}
+                value={field.value ?? ''}
+              />
+            )}
           </FormControl>
           {errors[fieldConfig.name] ? (
             <FormMessage />
