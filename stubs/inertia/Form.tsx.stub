@@ -1,0 +1,89 @@
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import FormFieldRenderer from '@/components/ui/form-field-renderer'
+import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { FormFieldConfig, {{model}} } from '@/types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
+const baseFormSchema = z.object({
+  name: z.string().min(2).max(50),
+  // Agrega más campos según lo que necesite {{model}}
+})
+
+const createFormSchema = z.object({
+  name: z.string().min(2).max(50),
+  // Campos obligatorios extra para "create"
+})
+
+export type {{model}}FormData = z.infer<typeof baseFormSchema>
+
+const formFieldsConfig: FormFieldConfig[] = [
+  {
+    name: 'name',
+    label: 'Name',
+    type: 'text',
+    placeholder: {
+      create: 'Enter name',
+      edit: 'Enter name',
+    },
+    description: {
+      create: "This is the {{modelLower}}'s display name.",
+      edit: "This is the {{modelLower}}'s display name.",
+    },
+  },
+  // 🔧 Puedes duplicar/editar según tus necesidades (email, password, etc.)
+]
+
+interface {{model}}FormProps {
+  data: {{model}} | null
+  isEdit?: boolean
+  onSubmit?: (values: {{model}}FormData) => void
+  submitButtonText?: string
+}
+
+const {{model}}Form = ({
+  data,
+  isEdit = false,
+  onSubmit,
+  submitButtonText = 'Submit',
+}: {{model}}FormProps) => {
+  const formSchema = isEdit ? baseFormSchema : createFormSchema
+
+  const form = useForm<{{model}}FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: data?.name || '',
+      // agrega más defaultValues según corresponda
+    },
+  })
+
+  const { handleSubmit } = useFormSubmit<{{model}}FormData>({
+    onSubmit,
+    isEdit,
+    entityId: data?.id,
+    entityPath: '{{pluralLower}}',
+  })
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {formFieldsConfig.map((fieldConfig) => (
+          <FormFieldRenderer
+            key={fieldConfig.name}
+            control={form.control}
+            fieldConfig={fieldConfig}
+            isEdit={isEdit}
+            errors={form.formState.errors}
+          />
+        ))}
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
+        </Button>
+      </form>
+    </Form>
+  )
+}
+
+export default {{model}}Form

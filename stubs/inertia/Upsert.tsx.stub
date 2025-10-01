@@ -1,0 +1,44 @@
+import AppForm from '@/components/app-form'
+import UpsertShell from '@/components/upsert-shell'
+import { BreadcrumbItem } from '@/types'
+import {{model}}Form from './{{model}}Form'
+
+interface UpsertProps {
+  data?: any
+  mode?: 'create' | 'edit'
+}
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: '{{plural}}',
+    href: '/{{pluralLower}}',
+  },
+]
+
+const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
+  const isEdit = mode === 'edit'
+
+  const pageCrumbs: BreadcrumbItem[] = [
+    ...breadcrumbs,
+    { title: isEdit ? 'Edit' : 'Create', href: '' },
+  ]
+
+  return (
+    <UpsertShell
+      title={isEdit ? 'Edit {{model}}' : 'Create {{model}}'}
+      breadcrumbs={pageCrumbs}
+      mode={mode}
+      data={data}
+      childPropName="{{modelLower}}"
+      submitButtonText={(edit) =>
+        edit ? 'Update {{model}}' : 'Create {{model}}'
+      }
+    >
+      <AppForm>
+        <{{model}}Form isEdit={isEdit} data={data} />
+      </AppForm>
+    </UpsertShell>
+  )
+}
+
+export default Upsert
