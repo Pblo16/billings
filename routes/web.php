@@ -69,6 +69,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'control.departments.update',
         'destroy' => 'control.departments.destroy'
     ]);
+    // API endpoint para búsqueda de usuarios
+    Route::get('global/post/search-users', [PostController::class, 'searchUsers'])->name('global.post.search-users');
+
     Route::resource('global/post', PostController::class)->names([
         'index' => 'global.post',
         'create' => 'global.post.create',

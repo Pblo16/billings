@@ -24,7 +24,8 @@ class PostController extends Controller
    */
   public function create()
   {
-    $users = \App\Models\User::all()->map(fn($user) => [
+    // Cargar solo 5 usuarios iniciales, el resto se cargará con búsqueda asíncrona
+    $users = \App\Models\User::query()->limit(5)->get()->map(fn($user) => [
       'value' => (string)$user->id,
       'label' => $user->name
     ])->toArray();
@@ -66,7 +67,8 @@ class PostController extends Controller
   {
     $data = Post::findOrFail($id);
 
-    $users = \App\Models\User::all()->map(fn($user) => [
+    // Cargar solo 5 usuarios iniciales, el resto se cargará con búsqueda asíncrona
+    $users = \App\Models\User::query()->limit(5)->get()->map(fn($user) => [
       'value' => (string)$user->id,
       'label' => $user->name
     ])->toArray();
@@ -106,5 +108,29 @@ class PostController extends Controller
     }
 
     return redirect()->route('global.post')->with('success', 'Registro eliminado exitosamente.');
+  }
+
+  /**
+   * Search users with pagination for combobox
+   */
+  public function searchUsers(Request $request)
+  {
+    $search = $request->input('search', '');
+    $perPage = $request->input('per_page', 10);
+
+    $users = \App\Models\User::query()
+      ->when($search, function ($query, $search) {
+        $query->where('name', 'like', "%{$search}%")
+          ->orWhere('email', 'like', "%{$search}%");
+      })
+      ->select('id', 'name')
+      ->limit($perPage)
+      ->get()
+      ->map(fn($user) => [
+        'value' => (string)$user->id,
+        'label' => $user->name
+      ]);
+
+    return response()->json($users);
   }
 }

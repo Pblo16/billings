@@ -74,15 +74,17 @@ const getFormFieldsConfig = (
     label: 'User id',
     type: 'select',
     placeholder: {
-      create: 'Enter User id',
-      edit: 'Enter User id',
+      create: 'Select a user',
+      edit: 'Select a user',
     },
     description: {
-      create: 'This is the User id field.',
-      edit: 'This is the User id field.',
+      create: 'Search and select a user.',
+      edit: 'Search and select a user.',
     },
-    options: users,
+    options: users, // Opciones iniciales (5 primeros)
+    searchUrl: '/global/post/search-users', // URL para búsqueda dinámica
     onEditReadOnly: true,
+    colspan: 3,
   },
 ]
 

@@ -86,9 +86,12 @@ export interface FormFieldConfig {
         decimalScale?: number;
     };
     options?: { value: string; label: string }[]; // array de cualquier tamaño
+    searchUrl?: string; // URL para búsqueda asíncrona (usado con type 'select')
     disabled?: boolean;
     readOnly?: boolean;
     onEditReadOnly?: boolean;
+    colspan?: number; // Number of columns to span in a grid layout
+    rowspan?: number; // Number of rows to span in a grid layout
 }
 
 export interface Product {

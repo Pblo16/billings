@@ -47,6 +47,7 @@ interface ComboboxProps {
   value?: string | number
   onChange?: (value: string | number) => void
   readOnly?: boolean
+  maxVisibleOptions?: number // Nueva prop para limitar resultados visibles
 }
 
 export function Combobox({
@@ -54,8 +55,10 @@ export function Combobox({
   value: externalValue,
   onChange,
   readOnly = false,
+  maxVisibleOptions = 5, // Por defecto mostrar 5
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [search, setSearch] = React.useState('')
   options = options ? options : frameworks
 
   // Convertir el valor externo a string para la comparación
@@ -68,12 +71,17 @@ export function Combobox({
   // Encontrar la opción seleccionada
   const selectedOption = options.find((option) => option.value === stringValue)
 
-  console.log(
-    'Selected value:',
-    stringValue,
-    'Selected option:',
-    selectedOption,
-  )
+  // Filtrar opciones basándose en la búsqueda
+  const filteredOptions = React.useMemo(() => {
+    if (!search) {
+      // Sin búsqueda, mostrar solo las primeras N opciones
+      return options.slice(0, maxVisibleOptions)
+    }
+    // Con búsqueda, filtrar todas las opciones
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(search.toLowerCase()),
+    )
+  }, [options, search, maxVisibleOptions])
 
   return (
     <Popover
@@ -104,11 +112,15 @@ export function Combobox({
       {!readOnly && (
         <PopoverContent className="p-0 w-full">
           <Command>
-            <CommandInput placeholder="Search an option" />
+            <CommandInput
+              placeholder="Search an option"
+              value={search}
+              onValueChange={setSearch}
+            />
             <CommandList>
               <CommandEmpty>No option found.</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {filteredOptions.map((option) => (
                   <CommandItem
                     key={option.value}
                     value={option.label}
@@ -121,6 +133,7 @@ export function Combobox({
                           ? newValue
                           : Number(newValue)
                       onChange?.(finalValue)
+                      setSearch('') // Limpiar búsqueda al seleccionar
                       setOpen(false)
                     }}
                   >
@@ -136,6 +149,14 @@ export function Combobox({
                   </CommandItem>
                 ))}
               </CommandGroup>
+              {!search &&
+                filteredOptions.length === maxVisibleOptions &&
+                options.length > maxVisibleOptions && (
+                  <div className="p-2 text-muted-foreground text-xs text-center">
+                    Showing {maxVisibleOptions} of {options.length}. Type to
+                    search all...
+                  </div>
+                )}
             </CommandList>
           </Command>
         </PopoverContent>

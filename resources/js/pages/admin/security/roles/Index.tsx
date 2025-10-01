@@ -1,9 +1,9 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
 import { columns } from '@/pages/admin/security/roles/columns'
+import { role } from '@/routes/admin/security/'
 import { create } from '@/routes/admin/security/role'
 import { type BreadcrumbItem, type Role } from '@/types'
-import { role }  from '@/routes/admin/security/'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
