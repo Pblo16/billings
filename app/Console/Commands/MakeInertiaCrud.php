@@ -65,7 +65,7 @@ class MakeInertiaCrud extends Command
         $config = $nameResolver->resolve();
 
         // Crear instancias de servicios
-        $fieldManager = new FieldManager($this);
+        $fieldManager = new FieldManager($this, $config['model']);
         $migrationUpdater = new MigrationUpdater($this);
         $controllerGenerator = new ControllerGenerator($this, $fieldManager);
         $reactFileGenerator = new ReactFileGenerator($this, $fieldManager);

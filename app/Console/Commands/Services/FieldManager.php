@@ -14,6 +14,7 @@ use function Laravel\Prompts\error;
 
 class FieldManager
 {
+  private string $modelName;
   private const FIELD_TYPES = [
     'string',
     'text',
@@ -45,8 +46,11 @@ class FieldManager
   ];
 
   public function __construct(
-    private Command $command
-  ) {}
+    private Command $command,
+    string $modelName = 'model'
+  ) {
+    $this->modelName = $modelName;
+  }
 
   public function askForFields(): array
   {
@@ -406,7 +410,8 @@ JS;
 
       // Agregar regla unique si está marcado
       if (isset($field['unique']) && $field['unique']) {
-        $rules[] = 'unique:' . strtolower(class_basename($this->command->getModelName ?? 'model')) . 's';
+
+        $rules[] = 'unique:' . strtolower(class_basename($this->modelName)) . 's';
       }
 
       $validationRules[] = "'{$field['name']}' => '" . implode('|', $rules) . "'";

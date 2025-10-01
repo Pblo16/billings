@@ -6,6 +6,7 @@ use App\Http\Controllers\Control\ProviderController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Control\DepartmentsController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -56,7 +57,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'control.clients.update',
         'destroy' => 'control.clients.destroy'
     ]);
+
+    Route::resource('control/departments', DepartmentsController::class)->names([
+        'index' => 'control.departments',
+        'create' => 'control.departments.create',
+        'store' => 'control.departments.store',
+        'show' => 'control.departments.show',
+        'edit' => 'control.departments.edit',
+        'update' => 'control.departments.update',
+        'destroy' => 'control.departments.destroy'
+    ]);
 });
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
