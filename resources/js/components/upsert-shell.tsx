@@ -6,7 +6,7 @@ interface UpsertShellProps {
   title?: string
   breadcrumbs?: BreadcrumbItem[]
   mode?: 'create' | 'edit'
-  data?: any
+  data?: Record<string, unknown>
   children: React.ReactNode
   childPropName?: string // prop name to pass the data under, default 'data'
   submitButtonText?: (isEdit: boolean) => string
@@ -30,7 +30,7 @@ const UpsertShell = ({
       : 'Create'
 
   // Clone the child and inject props: isEdit, submitButtonText, and data under childPropName
-  const injectedProps: Record<string, any> = {
+  const injectedProps: Record<string, unknown> = {
     isEdit,
     submitButtonText: computedSubmit,
   }

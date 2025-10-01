@@ -1,0 +1,77 @@
+import FormGrid from '@/components/form-grid'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import FormFieldRenderer from '@/components/ui/form-field-renderer'
+import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { store } from '@/routes/{{routePath}}{{modelLower}}'
+import { FormFieldConfig, {{name}} } from '@/types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
+const baseFormSchema = z.object({
+{{zodSchema}}
+})
+
+const createFormSchema = z.object({
+{{zodSchema}}
+})
+
+export type {{name}}FormData = z.infer<typeof baseFormSchema>
+
+const formFieldsConfig: FormFieldConfig[] = [
+{{formFieldsConfig}}
+]
+
+interface {{name}}FormProps {
+  data: {{name}} | null
+  isEdit?: boolean
+  onSubmit?: (values: {{name}}FormData) => void
+  submitButtonText?: string
+}
+
+const {{name}}Form = ({
+  data,
+  isEdit = false,
+  onSubmit,
+  submitButtonText = 'Submit',
+}: {{name}}FormProps) => {
+  const formSchema = isEdit ? baseFormSchema : createFormSchema
+
+  const form = useForm<{{name}}FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+{{defaultValues}}
+    },
+  })
+
+  const { handleSubmit } = useFormSubmit<{{name}}FormData>({
+    onSubmit,
+    isEdit,
+    entityId: data?.id,
+    entityPath: store().url,
+  })
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <FormGrid>
+        {formFieldsConfig.map((fieldConfig) => (
+          <FormFieldRenderer
+            key={fieldConfig.name}
+            control={form.control}
+            fieldConfig={fieldConfig}
+            isEdit={isEdit}
+            errors={form.formState.errors}
+          />
+        ))}
+        </FormGrid>
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
+        </Button>
+      </form>
+    </Form>
+  )
+}
+
+export default {{name}}Form

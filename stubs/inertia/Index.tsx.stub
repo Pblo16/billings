@@ -1,37 +1,33 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { columns } from '@/pages/{{pluralLower}}/columns'
-import { create } from '@/routes/{{pluralLower}}'
-import { type BreadcrumbItem, type {{model}} } from '@/types'
+import { columns } from '@/pages/{{routePath}}{{pluralLower}}/columns'
+import { create } from '@/routes/{{routePath}}{{nameLower}}'
+import { type BreadcrumbItem, type {{name}} } from '@/types'
+import { {{nameLower}} }  from '@/routes/{{routePath}}'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: '{{plural}}',
-    href: '/{{pluralLower}}',
+    title: '{{name}}',
+    href: {{nameLower}}().url,
   },
 ]
 
 const headerActions = [
   {
-    label: 'New {{model}}',
+    label: 'New {{name}}',
     href: create().url,
     variant: 'outline' as const,
   },
-  {
-    label: 'Open modal',
-    href: '/{{pluralLower}}/bulk-actions',
-    variant: 'secondary' as const,
-  },
 ]
 
-const {{plural}}Index = (props: { data: {{model}}[] }) => {
+const {{name}}Index = (props: { data: {{name}}[] }) => {
   const { data } = props
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data} header={headerActions} />
+      <DataTable columns={columns} data={data ?? null} header={headerActions} />
     </AppLayout>
   )
 }
 
-export default {{plural}}Index
+export default {{name}}Index

@@ -20,6 +20,15 @@ class UsersController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+
+    public function create()
+    {
+        return Inertia::render('users/Upsert');
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -40,14 +49,6 @@ class UsersController extends Controller
         return redirect()->route('users')->with('success', 'User created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-
-    public function create()
-    {
-        return Inertia::render('users/Upsert');
-    }
 
     /**
      * Show the form for editing the specified resource.

@@ -1,7 +1,9 @@
+import FormGrid from '@/components/form-grid'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { store } from '@/routes/users'
 import { FormFieldConfig, UserWithAvatar } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -92,21 +94,23 @@ const UserForm = ({
     onSubmit,
     isEdit,
     entityId: data?.id,
-    entityPath: 'users',
+    entityPath: store().url,
   })
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        {formFieldsConfig.map((fieldConfig) => (
-          <FormFieldRenderer
-            key={fieldConfig.name}
-            control={form.control}
-            fieldConfig={fieldConfig}
-            isEdit={isEdit}
-            errors={form.formState.errors}
-          />
-        ))}
+        <FormGrid>
+          {formFieldsConfig.map((fieldConfig) => (
+            <FormFieldRenderer
+              key={fieldConfig.name}
+              control={form.control}
+              fieldConfig={fieldConfig}
+              isEdit={isEdit}
+              errors={form.formState.errors}
+            />
+          ))}
+        </FormGrid>
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
         </Button>

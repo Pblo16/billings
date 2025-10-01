@@ -4,6 +4,7 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import typescript from 'typescript-eslint';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -31,10 +32,23 @@ export default [
     {
         plugins: {
             'react-hooks': reactHooks,
+            'unused-imports': unusedImports
         },
         rules: {
             'react-hooks/rules-of-hooks': 'error',
             'react-hooks/exhaustive-deps': 'warn',
+            "no-unused-vars": "off", // Disable the default no-unused-vars rule
+            "unused-imports/no-unused-imports": "error", // Report unused imports
+            "unused-imports/no-unused-vars": [
+                "warn",
+                {
+                    "vars": "all",
+                    "varsIgnorePattern": "^_",
+                    "args": "after-used",
+                    "argsIgnorePattern": "^_"
+                }
+            ]
+
         },
     },
     {

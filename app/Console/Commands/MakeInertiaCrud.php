@@ -2,64 +2,150 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Services\ControllerGenerator;
+use App\Console\Commands\Services\FieldManager;
+use App\Console\Commands\Services\MigrationUpdater;
+use App\Console\Commands\Services\NameResolver;
+use App\Console\Commands\Services\ReactFileGenerator;
+use App\Console\Commands\Services\RouteGenerator;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
+
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\note;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\multiselect;
+use function Pest\Laravel\call;
 
 class MakeInertiaCrud extends Command
 {
-    protected $signature = 'make:inertia {name}';
-    protected $description = 'Crea modelo, controlador y vistas para Inertia';
+    protected $signature = 'make:inertia {name?}';
+    protected $description = 'Create model, controller and Inertia views with CRUD operations';
 
-    public function handle()
+    public function handle(): void
     {
+        // Preguntar por el nombre si no se proporcionó
         $name = $this->argument('name');
-        $model = Str::studly($name);
-        $controller = "{$model}Controller";
-        $plural = Str::pluralStudly($model);
-        $indexFile = resource_path("js/pages/{$plural}/Index.tsx");
+
+        if (!$name) {
+            note('You can organize your files using paths:' . PHP_EOL . '• Simple: Role' . PHP_EOL . '• Nested: Admin/Role' . PHP_EOL . '• Deep: Example/Components/Component');
+            $this->newLine();
+
+            $name = text(
+                label: 'What is the name of your model?',
+                placeholder: 'E.g. Role, Admin/Role, Example/Components/Component',
+                required: true,
+                validate: fn($value) => $this->validateModelName($value)
+            );
+        }
+
+        // Preguntar qué componentes generar
+        $this->newLine();
+        $components = multiselect(
+            label: 'What would you like to generate?',
+            options: [
+                'all' => 'All (Model, Migration, Controller, Views, Routes)',
+                'model' => 'Model',
+                'migration' => 'Migration',
+                'controller' => 'Controller',
+                'views' => 'Inertia Views',
+                'routes' => 'Routes (web.php)',
+            ],
+            default: ['all'],
+            required: true,
+            hint: 'Use space to select, enter to confirm'
+        );
+
+        // Si se selecciona "all", incluir todos los componentes
+        if (in_array('all', $components)) {
+            $components = ['model', 'migration', 'controller', 'views', 'routes'];
+        }
+
+        // Resolver nombres y rutas
+        $nameResolver = new NameResolver($name);
+        $config = $nameResolver->resolve();
+
+        // Crear instancias de servicios
+        $fieldManager = new FieldManager($this, $config['model']);
+        $migrationUpdater = new MigrationUpdater($this);
+        $controllerGenerator = new ControllerGenerator($this, $fieldManager);
+        $reactFileGenerator = new ReactFileGenerator($this, $fieldManager);
+        $routeGenerator = new RouteGenerator($this);
+
+        // Solicitar campos para la migración si se va a generar migración
+        $fields = [];
+        if (in_array('migration', $components) || in_array('controller', $components) || in_array('views', $components)) {
+            $fields = $fieldManager->askForFields();
+        }
 
         // Crear modelo + migración
-        $this->call('make:model', [
-            'name' => $model,
-            '-m' => true,
-        ]);
-
-        // Crear controlador de tipo resource
-        $this->call('make:controller', [
-            'name' => $controller,
-            '--resource' => true,
-        ]);
-
-        // Crear directorio de vistas Inertia
-        $viewPath = resource_path("js/pages/{$plural}");
-        if (! is_dir($viewPath)) {
-            mkdir($viewPath, 0755, true);
+        if (in_array('model', $components)) {
+            $migrationOption = in_array('migration', $components) ? ['-m' => true] : [];
+            $this->call('make:model', array_merge(['name' => $config['modelWithPath']], $migrationOption));
+        } elseif (in_array('migration', $components)) {
+            // Solo crear migración sin modelo
+            $this->call('make:migration', ['name' => 'create_' . strtolower($config['model']) . 's_table']);
         }
 
-        // Usar stub de TypeScript
-        $this->makeReactFile($indexFile, 'Index.tsx', [
-            'name' => $model,
-            'plural' => $plural,
-            'pluralLower' => Str::lower($plural),
-            'model' => basename(str_replace('\\', '/', $model)),
-        ]);
+        // Modificar archivos si hay campos y migración
+        if (!empty($fields) && in_array('migration', $components)) {
+            $migrationUpdater->updateMigration($config['model'], $fields);
 
-        $this->info("Modelo {$model}, controlador {$controller} y vistas Inertia creadas en {$viewPath}");
+            if (in_array('model', $components)) {
+                $migrationUpdater->updateModelFillable($config['model'], $config['parentPath'], $fields);
+            }
+
+            if (in_array('views', $components)) {
+                $migrationUpdater->addTypesToIndexFile($config['name'], $fields);
+            }
+        }
+
+        // Crear controlador
+        if (in_array('controller', $components)) {
+            $controllerGenerator->createController($config, $fields);
+        }
+
+        // Generar archivos React
+        if (in_array('views', $components)) {
+            $reactFileGenerator->generateReactFiles($config, $fields);
+        }
+
+        // Generar rutas
+        if (in_array('routes', $components)) {
+            $routeGenerator->addRouteToWeb($config);
+        }
+
+        // Mensaje de éxito
+        $generated = [];
+        if (in_array('model', $components)) $generated[] = 'Model';
+        if (in_array('migration', $components)) $generated[] = 'Migration';
+        if (in_array('controller', $components)) $generated[] = 'Controller';
+        if (in_array('views', $components)) $generated[] = 'Inertia Views';
+        if (in_array('routes', $components)) $generated[] = 'Routes';
+
+        $this->call('migrate');
+
+        info(implode(', ', $generated) . ' created successfully!');
     }
 
-    protected function makeReactFile($path, $stub, $replacements)
+    private function validateModelName(?string $value): ?string
     {
-        $stubPath = base_path("stubs/inertia/{$stub}.stub");
-        if (!file_exists($stubPath)) {
-            $this->error("No se encontró el stub: {$stubPath}");
-            return;
-        }
-        $content = file_get_contents($stubPath);
-
-        foreach ($replacements as $search => $replace) {
-            $content = str_replace("{{{$search}}}", $replace, $content);
+        if (empty($value)) {
+            return 'Model name is required';
         }
 
-        file_put_contents($path, $content);
+        // Validar cada parte del path
+        $parts = explode('/', $value);
+
+        foreach ($parts as $part) {
+            if (empty($part)) {
+                return 'Empty path segments are not allowed';
+            }
+
+            if (!preg_match('/^[A-Z][a-zA-Z0-9]*$/', $part)) {
+                return "'{$part}' must start with an uppercase letter and contain only letters and numbers";
+            }
+        }
+
+        return null;
     }
 }

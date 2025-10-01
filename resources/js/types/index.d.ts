@@ -58,7 +58,7 @@ export type UserWithAvatar = User & { avatar?: string | null };
 export interface FormFieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local';
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select';
     placeholder: {
         create: string;
         edit: string;
@@ -74,4 +74,107 @@ export interface FormFieldConfig {
         maxLength?: number;
         pattern?: string;
     };
+    // NumberInput specific props (only used when type is 'number')
+    numberInputProps?: {
+        stepper?: number;
+        thousandSeparator?: string;
+        min?: number;
+        max?: number;
+        suffix?: string;
+        prefix?: string;
+        fixedDecimalScale?: boolean;
+        decimalScale?: number;
+    };
+    options?: { value: string; label: string }[]; // array de cualquier tamaño
+    searchUrl?: string; // URL para búsqueda asíncrona (usado con type 'select')
+    disabled?: boolean;
+    readOnly?: boolean;
+    onEditReadOnly?: boolean;
+    colspan?: number; // Number of columns to span in a grid layout
+    rowspan?: number; // Number of rows to span in a grid layout
+}
+
+export interface Product {
+    id: number;
+    name: string;
+    price?: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ProductForm {
+    name: string;
+    price?: number;
+}
+export interface Role {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface RoleForm {
+    name: string;
+    guard_name: string;
+}
+export interface Provider {
+    id: number;
+    name: string;
+    average?: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ProviderForm {
+    name: string;
+    average?: number;
+}
+export interface Clients {
+    id: number;
+    name: string;
+    phone?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ClientsForm {
+    name: string;
+    phone?: string;
+}
+export interface Departments {
+    id: number;
+    name: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface DepartmentsForm {
+    name: string;
+}
+export interface Post {
+    id: number;
+    name: string;
+    slug: string;
+    text?: string;
+    user_id: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PostForm {
+    name: string;
+    slug: string;
+    text?: string;
+    user_id: number;
+}
+export interface Pablo {
+    id: number;
+    pablo: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PabloForm {
+    pablo: string;
 }

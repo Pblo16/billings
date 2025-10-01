@@ -1,16 +1,11 @@
 import {
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 import { type NavMainProps, type NavItem } from '@/types'
 import { Link, usePage } from '@inertiajs/react'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Minus, Plus } from 'lucide-react'
 import { CollapsibleContent } from '@radix-ui/react-collapsible'

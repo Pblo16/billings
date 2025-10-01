@@ -2,19 +2,6 @@ import { NavFooter } from '@/components/nav-footer'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 
-import { dashboard, users } from '@/routes'
-import { NavMainProps, type NavItem } from '@/types'
-import { Link } from '@inertiajs/react'
-import {
-  Cog,
-  icons,
-  LayoutGrid,
-  LockKeyholeIcon,
-  Shield,
-  User,
-  Users,
-} from 'lucide-react'
-import AppLogo from './app-logo'
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +11,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { dashboard, users } from '@/routes'
+import { role } from '@/routes/admin/security'
+import { clients, departments, provider } from '@/routes/control'
+import { post } from '@/routes/global'
+import { NavMainProps, type NavItem } from '@/types'
+import { Link } from '@inertiajs/react'
+import {
+  Building2,
+  Cog,
+  LayoutGrid,
+  ScanLine,
+  Shield,
+  Users,
+} from 'lucide-react'
+import AppLogo from './app-logo'
 
 const mainNavItems: NavMainProps = {
   navMain: [
@@ -48,11 +50,44 @@ const mainNavItems: NavMainProps = {
           icon: Shield,
           items: [
             {
-              title: 'Permissions',
-              href: users(),
-              icon: LockKeyholeIcon,
+              title: 'Roles',
+              href: role(),
             },
           ],
+        },
+      ],
+    },
+    {
+      title: 'Control',
+      href: '#',
+      icon: Building2,
+      items: [
+        {
+          title: 'Providers',
+          href: provider(),
+          icon: ScanLine,
+        },
+        {
+          title: 'Clients',
+          href: clients(),
+          icon: ScanLine,
+        },
+        {
+          title: 'Departments',
+          href: departments(),
+          icon: ScanLine,
+        },
+      ],
+    },
+    {
+      title: 'Global',
+      href: '#',
+      icon: Building2,
+      items: [
+        {
+          title: 'Posts',
+          href: post(),
+          icon: ScanLine,
         },
       ],
     },
