@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { store } from '@/routes/users'
 import { FormFieldConfig, UserWithAvatar } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -92,7 +93,7 @@ const UserForm = ({
     onSubmit,
     isEdit,
     entityId: data?.id,
-    entityPath: 'users',
+    entityPath: store().url,
   })
 
   return (

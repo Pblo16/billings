@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'users.update',
         'destroy' => 'users.destroy'
     ]);
+
     Route::resource('test/uno/pruebas', PruebaController::class)->names([
         'index' => 'test.uno.pruebas',
         'create' => 'test.uno.pruebas.create',

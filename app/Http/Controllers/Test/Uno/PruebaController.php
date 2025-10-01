@@ -14,7 +14,9 @@ class PruebaController extends Controller
     public function index()
     {
         //
-        return Inertia::render('test/uno/pruebas/Index', []);
+        return Inertia::render('test/uno/pruebas/Index', [
+            'data' => \App\Models\Test\Uno\Prueba::all(),
+        ]);
     }
 
     /**
@@ -43,6 +45,7 @@ class PruebaController extends Controller
 
             return redirect()->route('test.uno.pruebas')->with('success', 'Prueba created successfully');
         } catch (\Exception $e) {
+            dd($e);
             return redirect()->back()->with('error', 'Error creating Prueba: ' . $e->getMessage());
         }
     }
