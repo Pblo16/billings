@@ -3,26 +3,32 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
-import { store } from '@/routes/control/provider'
-import { FormFieldConfig, Provider } from '@/types'
+import { store } from '@/routes/global/post'
+import { FormFieldConfig, Post } from '@/types'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { usePage } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-
 const baseFormSchema = z.object({
   name: z.string().min(2).max(255),
-  average: z.number().min(0).optional(),
+  slug: z.string().min(2).max(255),
+  text: z.string().optional(),
+  user_id: z.number(),
 })
 
 const createFormSchema = z.object({
   name: z.string().min(2).max(255),
-  average: z.number().min(0).optional(),
+  slug: z.string().min(2).max(255),
+  text: z.string().optional(),
+  user_id: z.number(),
 })
 
-export type ProviderFormData = z.infer<typeof baseFormSchema>
+export type PostFormData = z.infer<typeof baseFormSchema>
 
-const formFieldsConfig: FormFieldConfig[] = [
+const getFormFieldsConfig = (
+  users: { value: string; label: string }[],
+): FormFieldConfig[] => [
   {
     name: 'name',
     label: 'Name',
@@ -37,44 +43,79 @@ const formFieldsConfig: FormFieldConfig[] = [
     },
   },
   {
-    name: 'average',
-    label: 'Average',
-    type: 'number',
+    name: 'slug',
+    label: 'Slug (read-only)',
+    type: 'text',
+    readOnly: true,
     placeholder: {
-      create: 'Enter Average',
-      edit: 'Enter Average',
+      create: 'Enter Slug',
+      edit: 'Enter Slug',
     },
     description: {
-      create: 'This is the Average field.',
-      edit: 'This is the Average field.',
+      create: 'This is the Slug field.',
+      edit: 'This is the Slug field.',
     },
+  },
+  {
+    name: 'text',
+    label: 'Text',
+    type: 'text',
+    placeholder: {
+      create: 'Enter Text',
+      edit: 'Enter Text',
+    },
+    description: {
+      create: 'This is the Text field.',
+      edit: 'This is the Text field.',
+    },
+  },
+  {
+    name: 'user_id',
+    label: 'User id',
+    type: 'select',
+    placeholder: {
+      create: 'Enter User id',
+      edit: 'Enter User id',
+    },
+    description: {
+      create: 'This is the User id field.',
+      edit: 'This is the User id field.',
+    },
+    options: users,
+    onEditReadOnly: true,
   },
 ]
 
-interface ProviderFormProps {
-  data: Provider | null
+interface PostFormProps {
+  data: Post | null
   isEdit?: boolean
-  onSubmit?: (values: ProviderFormData) => void
+  onSubmit?: (values: PostFormData) => void
   submitButtonText?: string
 }
 
-const ProviderForm = ({
+const PostForm = ({
   data,
   isEdit = false,
   onSubmit,
   submitButtonText = 'Submit',
-}: ProviderFormProps) => {
+}: PostFormProps) => {
+  const { props } = usePage()
+  const users = (props.users as { value: string; label: string }[]) || []
+  const formFieldsConfig = getFormFieldsConfig(users)
+
   const formSchema = isEdit ? baseFormSchema : createFormSchema
 
-  const form = useForm<ProviderFormData>({
+  const form = useForm<PostFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: data?.name || '',
-      average: data?.average || 0,
+      slug: data?.slug || crypto.randomUUID(),
+      text: data?.text || '',
+      user_id: data?.user_id || undefined,
     },
   })
 
-  const { handleSubmit } = useFormSubmit<ProviderFormData>({
+  const { handleSubmit } = useFormSubmit<PostFormData>({
     onSubmit,
     isEdit,
     entityId: data?.id,
@@ -103,4 +144,4 @@ const ProviderForm = ({
   )
 }
 
-export default ProviderForm
+export default PostForm

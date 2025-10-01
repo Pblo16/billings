@@ -1,19 +1,21 @@
+import FormGrid from '@/components/form-grid'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { store } from '@/routes/control/departments'
-import { FormFieldConfig, Departments } from '@/types'
+import { Departments, FormFieldConfig } from '@/types'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const baseFormSchema = z.object({
-  name: z.string().min(2).max(255)
+  name: z.string().min(2).max(255),
 })
 
 const createFormSchema = z.object({
-  name: z.string().min(2).max(255)
+  name: z.string().min(2).max(255),
 })
 
 export type DepartmentsFormData = z.infer<typeof baseFormSchema>
@@ -31,7 +33,7 @@ const formFieldsConfig: FormFieldConfig[] = [
       create: 'This is the Name field.',
       edit: 'This is the Name field.',
     },
-  }
+  },
 ]
 
 interface DepartmentsFormProps {
@@ -52,7 +54,7 @@ const DepartmentsForm = ({
   const form = useForm<DepartmentsFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: data?.name || ''
+      name: data?.name || '',
     },
   })
 
@@ -66,15 +68,17 @@ const DepartmentsForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        {formFieldsConfig.map((fieldConfig) => (
-          <FormFieldRenderer
-            key={fieldConfig.name}
-            control={form.control}
-            fieldConfig={fieldConfig}
-            isEdit={isEdit}
-            errors={form.formState.errors}
-          />
-        ))}
+        <FormGrid>
+          {formFieldsConfig.map((fieldConfig) => (
+            <FormFieldRenderer
+              key={fieldConfig.name}
+              control={form.control}
+              fieldConfig={fieldConfig}
+              isEdit={isEdit}
+              errors={form.formState.errors}
+            />
+          ))}
+        </FormGrid>
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
         </Button>

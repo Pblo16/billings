@@ -1,3 +1,4 @@
+import FormGrid from '@/components/form-grid'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
@@ -10,12 +11,12 @@ import { z } from 'zod'
 
 const baseFormSchema = z.object({
   name: z.string().min(2).max(255),
-  guard_name: z.string().min(2).max(255)
+  guard_name: z.string().min(2).max(255),
 })
 
 const createFormSchema = z.object({
   name: z.string().min(2).max(255),
-  guard_name: z.string().min(2).max(255)
+  guard_name: z.string().min(2).max(255),
 })
 
 export type RoleFormData = z.infer<typeof baseFormSchema>
@@ -46,7 +47,7 @@ const formFieldsConfig: FormFieldConfig[] = [
       create: 'This is the Guard name field.',
       edit: 'This is the Guard name field.',
     },
-  }
+  },
 ]
 
 interface RoleFormProps {
@@ -68,7 +69,7 @@ const RoleForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: data?.name || '',
-      guard_name: data?.guard_name || ''
+      guard_name: data?.guard_name || '',
     },
   })
 
@@ -82,15 +83,17 @@ const RoleForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        {formFieldsConfig.map((fieldConfig) => (
-          <FormFieldRenderer
-            key={fieldConfig.name}
-            control={form.control}
-            fieldConfig={fieldConfig}
-            isEdit={isEdit}
-            errors={form.formState.errors}
-          />
-        ))}
+        <FormGrid>
+          {formFieldsConfig.map((fieldConfig) => (
+            <FormFieldRenderer
+              key={fieldConfig.name}
+              control={form.control}
+              fieldConfig={fieldConfig}
+              isEdit={isEdit}
+              errors={form.formState.errors}
+            />
+          ))}
+        </FormGrid>
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
         </Button>

@@ -7,6 +7,7 @@ use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Control\DepartmentsController;
+use App\Http\Controllers\Global\PostController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -67,7 +68,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'control.departments.update',
         'destroy' => 'control.departments.destroy'
     ]);
+    Route::resource('global/post', PostController::class)->names([
+        'index' => 'global.post',
+        'create' => 'global.post.create',
+        'store' => 'global.post.store',
+        'show' => 'global.post.show',
+        'edit' => 'global.post.edit',
+        'update' => 'global.post.update',
+        'destroy' => 'global.post.destroy'
+    ]);
 });
+
 
 
 require __DIR__ . '/settings.php';

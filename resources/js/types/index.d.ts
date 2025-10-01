@@ -58,7 +58,7 @@ export type UserWithAvatar = User & { avatar?: string | null };
 export interface FormFieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone';
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select';
     placeholder: {
         create: string;
         edit: string;
@@ -85,6 +85,10 @@ export interface FormFieldConfig {
         fixedDecimalScale?: boolean;
         decimalScale?: number;
     };
+    options?: { value: string; label: string }[]; // array de cualquier tamaño
+    disabled?: boolean;
+    readOnly?: boolean;
+    onEditReadOnly?: boolean;
 }
 
 export interface Product {
@@ -144,4 +148,20 @@ export interface Departments {
 
 export interface DepartmentsForm {
     name: string;
+}
+export interface Post {
+    id: number;
+    name: string;
+    slug: string;
+    text?: string;
+    user_id: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PostForm {
+    name: string;
+    slug: string;
+    text?: string;
+    user_id: number;
 }

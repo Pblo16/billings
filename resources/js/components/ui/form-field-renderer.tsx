@@ -7,12 +7,18 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { FormFieldConfig } from '@/types'
-import { Control, FieldValues, Path, ControllerRenderProps } from 'react-hook-form'
 import { NumberInput } from '@/components/ui/input-number'
 import { PhoneInput } from '@/components/ui/input-phone'
+import { FormFieldConfig } from '@/types'
 import { usePage } from '@inertiajs/react'
 import { useMemo } from 'react'
+import {
+  Control,
+  ControllerRenderProps,
+  FieldValues,
+  Path,
+} from 'react-hook-form'
+import { Combobox } from './combobox'
 
 interface FormFieldRendererProps<T extends FieldValues> {
   control: Control<T>
@@ -26,7 +32,7 @@ interface FormFieldRendererProps<T extends FieldValues> {
  */
 const getContextualText = (
   config: { create: string; edit: string },
-  isEdit: boolean
+  isEdit: boolean,
 ): string => {
   return isEdit ? config.edit : config.create
 }
@@ -37,7 +43,7 @@ const getContextualText = (
 const renderStandardInput = <T extends FieldValues>(
   field: ControllerRenderProps<T, Path<T>>,
   fieldConfig: FormFieldConfig,
-  isEdit: boolean
+  isEdit: boolean,
 ) => (
   <Input
     type={fieldConfig.type}
@@ -45,6 +51,7 @@ const renderStandardInput = <T extends FieldValues>(
     {...field}
     onChange={(e) => field.onChange(e.target.value)}
     value={field.value ?? ''}
+    readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
   />
 )
 
@@ -54,13 +61,14 @@ const renderStandardInput = <T extends FieldValues>(
 const renderNumberInput = <T extends FieldValues>(
   field: ControllerRenderProps<T, Path<T>>,
   fieldConfig: FormFieldConfig,
-  isEdit: boolean
+  isEdit: boolean,
 ) => (
   <NumberInput
     placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
     value={field.value}
     onValueChange={(value) => field.onChange(value)}
     {...fieldConfig.numberInputProps}
+    readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
   />
 )
 
@@ -70,12 +78,26 @@ const renderNumberInput = <T extends FieldValues>(
 const renderPhoneInput = <T extends FieldValues>(
   field: ControllerRenderProps<T, Path<T>>,
   fieldConfig: FormFieldConfig,
-  isEdit: boolean
+  isEdit: boolean,
 ) => (
   <PhoneInput
     placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
     value={field.value}
     onValueChange={(value) => field.onChange(value)}
+    readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+  />
+)
+
+const renderSelectInput = <T extends FieldValues>(
+  field: ControllerRenderProps<T, Path<T>>,
+  fieldConfig: FormFieldConfig,
+  isEdit: boolean,
+) => (
+  <Combobox
+    options={fieldConfig.options ?? []}
+    value={field.value}
+    onChange={(value) => field.onChange(value)}
+    readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
   />
 )
 
@@ -85,13 +107,15 @@ const renderPhoneInput = <T extends FieldValues>(
 const renderInputByType = <T extends FieldValues>(
   field: ControllerRenderProps<T, Path<T>>,
   fieldConfig: FormFieldConfig,
-  isEdit: boolean
+  isEdit: boolean,
 ) => {
   switch (fieldConfig.type) {
     case 'number':
       return renderNumberInput(field, fieldConfig, isEdit)
     case 'phone':
       return renderPhoneInput(field, fieldConfig, isEdit)
+    case 'select':
+      return renderSelectInput(field, fieldConfig, isEdit)
     default:
       return renderStandardInput(field, fieldConfig, isEdit)
   }
@@ -101,9 +125,10 @@ const FormFieldRenderer = <T extends FieldValues>({
   control,
   fieldConfig,
   isEdit = false,
-  errors = {},
 }: FormFieldRendererProps<T>) => {
-  const { errors: serverErrors } = usePage().props as { errors: Record<string, string> }
+  const { errors: serverErrors } = usePage().props as {
+    errors: Record<string, string>
+  }
 
   // Memoize para evitar re-renders innecesarios
   const fieldError = useMemo(() => {
@@ -113,6 +138,7 @@ const FormFieldRenderer = <T extends FieldValues>({
   return (
     <FormField
       control={control}
+      disabled={fieldConfig.disabled}
       name={fieldConfig.name as Path<T>}
       render={({ field }) => (
         <FormItem>

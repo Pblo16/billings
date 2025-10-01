@@ -14,6 +14,7 @@ import {
 import { dashboard, users } from '@/routes'
 import { role } from '@/routes/admin/security'
 import { clients, departments, provider } from '@/routes/control'
+import { post } from '@/routes/global'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
 import {
@@ -74,6 +75,18 @@ const mainNavItems: NavMainProps = {
         {
           title: 'Departments',
           href: departments(),
+          icon: ScanLine,
+        },
+      ],
+    },
+    {
+      title: 'Global',
+      href: '#',
+      icon: Building2,
+      items: [
+        {
+          title: 'Posts',
+          href: post(),
           icon: ScanLine,
         },
       ],
