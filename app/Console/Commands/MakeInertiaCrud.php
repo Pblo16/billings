@@ -17,8 +17,9 @@ class MakeInertiaCrud extends Command
         $plural      = Str::pluralStudly($model);
         $pluralLower = Str::lower($plural);
         $modelLower  = Str::camel($model);
+        $name        = class_basename($model);
 
-        $viewPath = resource_path("js/pages/{$plural}");
+        $viewPath = resource_path("js/pages/{$pluralLower}");
 
         // Crear modelo + migración
         $this->call('make:model', ['name' => $model, '-m' => true]);
@@ -36,12 +37,12 @@ class MakeInertiaCrud extends Command
             'columns.tsx'      => "{$viewPath}/columns.tsx",
             'Index.tsx'        => "{$viewPath}/Index.tsx",
             'Upsert.tsx'       => "{$viewPath}/Upsert.tsx",
-            'Form.tsx'         => "{$viewPath}/{$model}Form.tsx",
+            'Form.tsx'         => "{$viewPath}/" . $name . "Form.tsx",
         ];
 
         // Reemplazos comunes
         $replacements = [
-            'name'        => $model,
+            'name'        => $name,
             'plural'      => $plural,
             'pluralLower' => $pluralLower,
             'model'       => $model,

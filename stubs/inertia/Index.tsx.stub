@@ -2,29 +2,24 @@ import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
 import { columns } from '@/pages/{{pluralLower}}/columns'
 import { create } from '@/routes/{{pluralLower}}'
-import { type BreadcrumbItem, type {{model}} } from '@/types'
+import { type BreadcrumbItem, type {{name}} } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: '{{plural}}',
+    title: '{{name}}',
     href: '/{{pluralLower}}',
   },
 ]
 
 const headerActions = [
   {
-    label: 'New {{model}}',
+    label: 'New {{name}}',
     href: create().url,
     variant: 'outline' as const,
   },
-  {
-    label: 'Open modal',
-    href: '/{{pluralLower}}/bulk-actions',
-    variant: 'secondary' as const,
-  },
 ]
 
-const {{plural}}Index = (props: { data: {{model}}[] }) => {
+const {{name}}Index = (props: { data: {{name}}[] }) => {
   const { data } = props
 
   return (
@@ -34,4 +29,4 @@ const {{plural}}Index = (props: { data: {{model}}[] }) => {
   )
 }
 
-export default {{plural}}Index
+export default {{name}}Index
