@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\PabloController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,17 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'destroy' => 'users.destroy'
     ]);
 
-    Route::resource('products', ProductController::class)->names([
-        'index' => 'products',
-        'create' => 'products.create',
-        'store' => 'products.store',
-        'show' => 'products.show',
-        'edit' => 'products.edit',
-        'update' => 'products.update',
-        'destroy' => 'products.destroy'
-    ]);
-
-    Route::resource('admin/security/role', ProductController::class)->names([
+    Route::resource('admin/security/role', RoleController::class)->names([
         'index' => 'admin.security.role',
         'create' => 'admin.security.role.create',
         'store' => 'admin.security.role.store',
@@ -44,17 +32,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'edit' => 'admin.security.role.edit',
         'update' => 'admin.security.role.update',
         'destroy' => 'admin.security.role.destroy'
-    ]);
-
-
-    Route::resource('pablo', PabloController::class)->names([
-        'index' => 'pablo',
-        'create' => 'pablo.create',
-        'store' => 'pablo.store',
-        'show' => 'pablo.show',
-        'edit' => 'pablo.edit',
-        'update' => 'pablo.update',
-        'destroy' => 'pablo.destroy'
     ]);
 });
 
