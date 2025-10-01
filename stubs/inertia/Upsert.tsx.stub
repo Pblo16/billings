@@ -2,6 +2,7 @@ import AppForm from '@/components/app-form'
 import UpsertShell from '@/components/upsert-shell'
 import { BreadcrumbItem } from '@/types'
 import {{name}}Form from './{{name}}Form'
+import { {{nameLower}} }  from '@/routes/{{parentPathLower}}'
 
 interface UpsertProps {
   data?: any
@@ -11,7 +12,7 @@ interface UpsertProps {
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: '{{plural}}',
-    href: '/{{pluralLower}}',
+    href: {{nameLower}}().url,
   },
 ]
 

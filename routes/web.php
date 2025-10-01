@@ -34,6 +34,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'products.update',
         'destroy' => 'products.destroy'
     ]);
+
+    Route::resource('admin/security/role', ProductController::class)->names([
+        'index' => 'admin.security.role',
+        'create' => 'admin.security.role.create',
+        'store' => 'admin.security.role.store',
+        'show' => 'admin.security.role.show',
+        'edit' => 'admin.security.role.edit',
+        'update' => 'admin.security.role.update',
+        'destroy' => 'admin.security.role.destroy'
+    ]);
 });
 
 require __DIR__ . '/settings.php';

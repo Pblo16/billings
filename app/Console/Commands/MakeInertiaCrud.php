@@ -12,14 +12,26 @@ class MakeInertiaCrud extends Command
 
     public function handle(): void
     {
-        $model       = Str::studly($this->argument('name'));
+        // Normalizar separadores y dividir en segmentos
+        $raw = str_replace('\\', '/', $this->argument('name'));
+        $segments = array_values(array_filter(explode('/', $raw)));
+
+        // Extraer último segmento (modelo) y construir la ruta padre sin el último segmento
+        $modelSegment = array_pop($segments);
+        $parentPath = implode('/', $segments); // "Admin/Security" o "" si no hay padre
+        $parentPathLower = Str::lower($parentPath);
+        // Modelo/Nombre/Controller habituales (usar $modelSegment como nombre base)
+        $model       = Str::studly($modelSegment);
         $controller  = "{$model}Controller";
         $plural      = Str::pluralStudly($model);
         $pluralLower = Str::lower($plural);
         $modelLower  = Str::lower($model);
         $name        = class_basename($model);
+        $nameLower   = Str::lower($name);
 
-        $viewPath = resource_path("js/pages/{$pluralLower}");
+        // Ejemplo: si quieres usar la ruta padre para vistas => resources/js/pages/Admin/Security/roles
+        $viewFolder = ($parentPath !== '') ? "{$parentPathLower}/{$pluralLower}" : $pluralLower;
+        $viewPath = resource_path("js/pages/{$viewFolder}");
 
         // Solicitar campos para la migración
         $fields = $this->askForFields();
@@ -57,6 +69,9 @@ class MakeInertiaCrud extends Command
             'pluralLower' => $pluralLower,
             'model'       => $model,
             'modelLower'  => $modelLower,
+            'nameLower'   => $nameLower,
+            'parentPath'  => $parentPath,
+            'parentPathLower' => $parentPathLower,
         ];
 
         // Generar código de campos para React
