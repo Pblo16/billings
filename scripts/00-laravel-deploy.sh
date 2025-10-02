@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+
+cho "Verifying frontend assets..."
+if [ ! -f /var/www/html/public/build/assets/app-Xxil5sf5.js ]; then
+  echo "ERROR: Frontend assets not found! Did you run pnpm build in CI?"
+  exit 1
+fi
+
 echo "Running composer"
 composer install --no-dev --working-dir=/var/www/html
 
