@@ -86,7 +86,6 @@ const getFormFieldsConfig = (
     options: users, // Opciones iniciales (5 primeros)
     searchUrl: data().url, // URL para búsqueda dinámica
     onEditReadOnly: true,
-    colspan: 3,
   },
 ]
 

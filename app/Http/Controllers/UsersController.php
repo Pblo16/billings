@@ -112,10 +112,16 @@ class UsersController extends Controller
     public function searchUsers(Request $request)
     {
         $search = $request->input('search', '');
+        $id = $request->input('id');
         $perPage = $request->input('per_page', 10);
 
         $users = \App\Models\User::query()
-            ->when($search, function ($query, $search) {
+            ->when($id, function ($query, $id) {
+                // Si se busca por ID específico, buscar solo ese usuario
+                $query->where('id', $id);
+            })
+            ->when($search && !$id, function ($query) use ($search) {
+                // Si hay búsqueda de texto y no es búsqueda por ID
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             })

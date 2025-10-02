@@ -126,6 +126,56 @@ export function AsyncCombobox({
     }
   }, [stringValue, initialOptions, selectedOptionCache])
 
+  // Buscar el label del valor seleccionado si no está en las opciones iniciales
+  React.useEffect(() => {
+    const fetchSelectedOption = async () => {
+      // Solo buscar si:
+      // 1. Hay un valor seleccionado
+      // 2. No está en las opciones actuales
+      // 3. No está en el cache
+      // 4. Hay una URL de búsqueda
+      if (!stringValue || !searchUrl || selectedOption || loading) {
+        return
+      }
+
+      setLoading(true)
+      try {
+        const url = new URL(searchUrl, window.location.origin)
+        url.searchParams.append('id', stringValue)
+        url.searchParams.append('per_page', '1')
+
+        const response = await fetch(url.toString(), {
+          headers: {
+            Accept: 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok')
+        }
+
+        const data = await response.json()
+        if (data && data.length > 0) {
+          const foundOption = data[0]
+          setSelectedOptionCache(foundOption)
+          // Agregar también a las opciones para evitar búsquedas futuras
+          setOptions((prevOptions) => {
+            const exists = prevOptions.some(
+              (opt) => opt.value === foundOption.value,
+            )
+            return exists ? prevOptions : [foundOption, ...prevOptions]
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching selected option:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSelectedOption()
+  }, [stringValue, searchUrl, selectedOption, loading])
+
   return (
     <Popover
       open={readOnly ? false : open}

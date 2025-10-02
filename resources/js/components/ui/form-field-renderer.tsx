@@ -155,63 +155,34 @@ const FormFieldRenderer = <T extends FieldValues>({
     return serverErrors?.[fieldConfig.name] || null
   }, [serverErrors, fieldConfig.name])
 
-  // Mapeo de clases completas para Tailwind (necesario para que el compilador las detecte)
-  const colspanClasses: Record<number, string> = {
-    1: 'col-span-1',
-    2: 'col-span-2',
-    3: 'col-span-3',
-  }
-
-  const rowspanClasses: Record<number, string> = {
-    1: 'row-span-1',
-    2: 'row-span-2',
-    3: 'row-span-3',
-    4: 'row-span-4',
-    5: 'row-span-5',
-    6: 'row-span-6',
-  }
-
-  const getGridClasses = () => {
-    const classes = []
-    if (fieldConfig.colspan) {
-      classes.push(colspanClasses[fieldConfig.colspan] || '')
-    }
-    if (fieldConfig.rowspan) {
-      classes.push(rowspanClasses[fieldConfig.rowspan] || '')
-    }
-    return classes.filter(Boolean).join(' ')
-  }
-
   return (
-    <div className={getGridClasses()}>
-      <FormField
-        control={control}
-        disabled={fieldConfig.disabled}
-        name={fieldConfig.name as Path<T>}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>
-              {fieldConfig.label}
-              {isEdit && fieldConfig.optional && (
-                <span className="ml-1 text-muted-foreground text-sm">
-                  (optional)
-                </span>
-              )}
-            </FormLabel>
-            <FormControl>
-              {renderInputByType(field, fieldConfig, isEdit)}
-            </FormControl>
-            {fieldError ? (
-              <FormMessage>{fieldError}</FormMessage>
-            ) : (
-              <FormDescription>
-                {getContextualText(fieldConfig.description, isEdit)}
-              </FormDescription>
+    <FormField
+      control={control}
+      disabled={fieldConfig.disabled}
+      name={fieldConfig.name as Path<T>}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>
+            {fieldConfig.label}
+            {isEdit && fieldConfig.optional && (
+              <span className="ml-1 text-muted-foreground text-sm">
+                (optional)
+              </span>
             )}
-          </FormItem>
-        )}
-      />
-    </div>
+          </FormLabel>
+          <FormControl>
+            {renderInputByType(field, fieldConfig, isEdit)}
+          </FormControl>
+          {fieldError ? (
+            <FormMessage>{fieldError}</FormMessage>
+          ) : (
+            <FormDescription>
+              {getContextualText(fieldConfig.description, isEdit)}
+            </FormDescription>
+          )}
+        </FormItem>
+      )}
+    />
   )
 }
 
