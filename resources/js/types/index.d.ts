@@ -153,22 +153,6 @@ export interface DepartmentsForm {
     name: string;
 }
 
-export interface Post {
-    id: number;
-    name: string;
-    slug: string;
-    text?: string;
-    user_id: number;
-    created_at?: string;
-    updated_at?: string;
-}
-
-export interface PostForm {
-    name: string;
-    slug: string;
-    text?: string;
-    user_id: number;
-}
 export interface Pablo {
     id: number;
     pablo: string;
