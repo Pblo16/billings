@@ -1,21 +1,9 @@
 'use client'
 
-import AppActionAlert from '@/components/app-action-alert'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { edit, show } from '@/routes/users'
-import { UserWithAvatar } from '@/types'
-import { Link } from '@inertiajs/react'
+import { TableAction, TableActions } from '@/components/table-actions'
+import { destroy, edit } from '@/routes/users'
+import { GetColumnsOptions, UserWithAvatar } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
-import { useState } from 'react'
 
 function getInitials(nameOrEmail: string | null | undefined) {
   const base = (nameOrEmail ?? '').trim()
@@ -27,57 +15,42 @@ function getInitials(nameOrEmail: string | null | undefined) {
 }
 
 // Actions cell component that can use hooks - exported for use in Index
-export const UserActionsCell = ({
-  user,
-  onDelete,
+export const ActionsCell = ({
+  id,
+  onActionSuccess,
+  actionsConfig = {},
 }: {
-  user: UserWithAvatar
-  onDelete?: () => void
+  id: number
+  onActionSuccess?: () => void
+  actionsConfig?: {
+    canEdit?: boolean
+    canDelete?: boolean
+  }
 }) => {
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openMenu, setOpenMenu] = useState(false)
-  const [query, setQuery] = useState(null as string | null)
+  const { canEdit = true, canDelete = true } = actionsConfig
 
-  return (
-    <>
-      <DropdownMenu open={openMenu} onOpenChange={setOpenMenu}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="p-0 w-8 h-8">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem>
-            <Link href={edit(user.id)} className="w-full">
-              Edit user
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault()
-              setOpenMenu(false)
-              setOpenDialog(true)
-              setQuery(show(user.id).url)
-            }}
-          >
-            Delete user
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <AppActionAlert
-        query={query}
-        open={openDialog}
-        setOpen={setOpenDialog}
-        onSuccess={onDelete}
-      />
-    </>
-  )
+  const actions: TableAction[] = [
+    {
+      label: 'Edit user',
+      href: edit(id).url,
+      enabled: canEdit,
+      variant: 'default',
+    },
+    {
+      label: 'Delete user',
+      enabled: canDelete,
+      variant: 'destructive',
+      requiresConfirmation: true,
+      confirmationQuery: destroy(id).url,
+    },
+  ]
+
+  return <TableActions actions={actions} onActionSuccess={onActionSuccess} />
 }
 
-export const columns: ColumnDef<UserWithAvatar, unknown>[] = [
+export const getColumns = (
+  options?: GetColumnsOptions,
+): ColumnDef<UserWithAvatar, unknown>[] => [
   {
     accessorKey: 'id',
     header: 'ID',
@@ -126,7 +99,16 @@ export const columns: ColumnDef<UserWithAvatar, unknown>[] = [
     id: 'actions',
     cell: ({ row }) => {
       const user = row.original
-      return <UserActionsCell user={user} />
+      return (
+        <ActionsCell
+          id={user.id}
+          onActionSuccess={options?.onActionSuccess}
+          actionsConfig={options?.actionsConfig}
+        />
+      )
     },
   },
 ]
+
+// Backward compatibility: export columns with default config
+export const columns = getColumns()

@@ -14,11 +14,8 @@ class RoleController extends Controller
      */
     public function index()
     {
-        return Inertia::render('admin/security/roles/Index', [
-            'data' => Role::all(),
-        ]);
+        return Inertia::render('admin/security/roles/Index');
     }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -34,15 +31,11 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'guard_name' => 'required|string|max:255',
-            ]);
-            Role::create($validated);
-        } catch (\Exception $e) {
-            return redirect()->route('admin.security.role')->withErrors(['error' => 'Error al crear: '.$e->getMessage()]);
-        }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'guard_name' => 'required|string|max:255',
+        ]);
+        Role::create($validated);
 
         return redirect()->route('admin.security.role')->with('success', 'Registro creado exitosamente.');
     }
@@ -73,16 +66,12 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        try {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'guard_name' => 'required|string|max:255',
-            ]);
-            $data = Role::findOrFail($id);
-            $data->update($validated);
-        } catch (\Exception $e) {
-            return redirect()->route('admin.security.role')->withErrors(['error' => 'Error al actualizar: '.$e->getMessage()]);
-        }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'guard_name' => 'required|string|max:255',
+        ]);
+        $data = Role::findOrFail($id);
+        $data->update($validated);
 
         return redirect()->route('admin.security.role')->with('success', 'Registro actualizado exitosamente.');
     }
@@ -96,9 +85,35 @@ class RoleController extends Controller
             $data = Role::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
         }
 
         return redirect()->route('admin.security.role')->with('success', 'Registro eliminado exitosamente.');
+    }
+
+    public function paginated(Request $request)
+    {
+        $query = Role::query();
+
+        // Apply search filter if provided
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('guard_name', 'like', "%{$search}%");
+        }
+
+        // Apply sorting if provided
+        if ($sortBy = $request->input('sortBy')) {
+            $sortDirection = $request->input('sortDirection', 'asc');
+            $query->orderBy($sortBy, $sortDirection);
+        } else {
+            // Default sorting
+            $query->orderBy('id', 'desc');
+        }
+
+        // Paginate the results
+        $perPage = $request->input('perPage', 10);
+        $roles = $query->paginate($perPage);
+
+        return response()->json($roles);
     }
 }

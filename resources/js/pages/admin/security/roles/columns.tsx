@@ -1,25 +1,46 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-
+import { TableAction, TableActions } from '@/components/table-actions'
 import { destroy, edit } from '@/routes/admin/security/role'
-import { type Role } from '@/types'
-import { Link } from '@inertiajs/react'
+import { GetColumnsOptions, Role } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
-import AppActionAlert from '@/components/app-action-alert'
 
+export const ActionsCell = ({
+  data,
+  onActionSuccess,
+  actionsConfig = {},
+}: {
+  data: number
+  onActionSuccess?: () => void
+  actionsConfig?: {
+    canEdit?: boolean
+    canDelete?: boolean
+  }
+}) => {
+  const { canEdit = true, canDelete = true } = actionsConfig
 
-export const columns: ColumnDef<Role, any>[] = [
+  const actions: TableAction[] = [
+    {
+      label: 'Edit user',
+      href: edit(data).url,
+      enabled: canEdit,
+      variant: 'default',
+    },
+    {
+      label: 'Delete user',
+      enabled: canDelete,
+      variant: 'destructive',
+      requiresConfirmation: true,
+      confirmationQuery: destroy(data).url,
+    },
+  ]
+
+  return <TableActions actions={actions} onActionSuccess={onActionSuccess} />
+}
+
+export const getColumns = (
+  options?: GetColumnsOptions,
+): ColumnDef<Role, unknown>[] => [
   {
     accessorKey: 'id',
     header: 'ID',
@@ -31,46 +52,13 @@ export const columns: ColumnDef<Role, any>[] = [
   {
     id: 'actions',
     cell: ({ row }) => {
-      const item = row.original
-      const [openDialog, setOpenDialog] = useState(false)
-      const [openMenu, setOpenMenu] = useState(false)
-      const [query, setQuery] = useState<string | null>(null)
-
+      const data = row.original
       return (
-        <>
-          <DropdownMenu open={openMenu} onOpenChange={setOpenMenu}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-0 w-8 h-8">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Link href={edit(item.id)} className="w-full">
-                  Edit Role
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault()
-                  setOpenMenu(false)
-                  setOpenDialog(true)
-                  setQuery(destroy(item.id).url)
-                }}
-              >
-                Delete Role
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <AppActionAlert
-            query={query}
-            open={openDialog}
-            setOpen={setOpenDialog}
-          />
-        </>
+        <ActionsCell
+          data={data.id}
+          onActionSuccess={options?.onActionSuccess}
+          actionsConfig={options?.actionsConfig}
+        />
       )
     },
   },

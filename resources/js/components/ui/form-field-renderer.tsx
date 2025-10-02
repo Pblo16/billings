@@ -53,6 +53,7 @@ const renderStandardInput = <T extends FieldValues>(
     onChange={(e) => field.onChange(e.target.value)}
     value={field.value ?? ''}
     readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+    disabled={fieldConfig.disabled || (isEdit && fieldConfig.onEditDisabled)}
   />
 )
 
@@ -70,6 +71,7 @@ const renderNumberInput = <T extends FieldValues>(
     onValueChange={(value) => field.onChange(value)}
     {...fieldConfig.numberInputProps}
     readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+    disabled={fieldConfig.disabled || (isEdit && fieldConfig.onEditDisabled)}
   />
 )
 
@@ -86,6 +88,7 @@ const renderPhoneInput = <T extends FieldValues>(
     value={field.value}
     onValueChange={(value) => field.onChange(value)}
     readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+    disabled={fieldConfig.disabled || (isEdit && fieldConfig.onEditDisabled)}
   />
 )
 
@@ -94,26 +97,27 @@ const renderSelectInput = <T extends FieldValues>(
   fieldConfig: FormFieldConfig,
   isEdit: boolean,
 ) => {
-  // Si tiene searchUrl, usar AsyncCombobox para búsqueda dinámica
-  if (fieldConfig.searchUrl) {
+  // Si tiene searchUrl o options, usar AsyncCombobox
+  if (fieldConfig.searchUrl || fieldConfig.options) {
     return (
       <AsyncCombobox
         searchUrl={fieldConfig.searchUrl}
-        initialOptions={fieldConfig.options ?? []}
+        options={fieldConfig.options}
         value={field.value}
         onChange={(value) => field.onChange(value)}
         readOnly={
           fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)
         }
         placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
+        show={fieldConfig.show}
       />
     )
   }
 
-  // Sino, usar Combobox estático
+  // Fallback a Combobox (aunque ya no debería llegar aquí)
   return (
     <Combobox
-      options={fieldConfig.options ?? []}
+      options={[]}
       value={field.value}
       onChange={(value) => field.onChange(value)}
       readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
@@ -155,63 +159,34 @@ const FormFieldRenderer = <T extends FieldValues>({
     return serverErrors?.[fieldConfig.name] || null
   }, [serverErrors, fieldConfig.name])
 
-  // Mapeo de clases completas para Tailwind (necesario para que el compilador las detecte)
-  const colspanClasses: Record<number, string> = {
-    1: 'col-span-1',
-    2: 'col-span-2',
-    3: 'col-span-3',
-  }
-
-  const rowspanClasses: Record<number, string> = {
-    1: 'row-span-1',
-    2: 'row-span-2',
-    3: 'row-span-3',
-    4: 'row-span-4',
-    5: 'row-span-5',
-    6: 'row-span-6',
-  }
-
-  const getGridClasses = () => {
-    const classes = []
-    if (fieldConfig.colspan) {
-      classes.push(colspanClasses[fieldConfig.colspan] || '')
-    }
-    if (fieldConfig.rowspan) {
-      classes.push(rowspanClasses[fieldConfig.rowspan] || '')
-    }
-    return classes.filter(Boolean).join(' ')
-  }
-
   return (
-    <div className={getGridClasses()}>
-      <FormField
-        control={control}
-        disabled={fieldConfig.disabled}
-        name={fieldConfig.name as Path<T>}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>
-              {fieldConfig.label}
-              {isEdit && fieldConfig.optional && (
-                <span className="ml-1 text-muted-foreground text-sm">
-                  (optional)
-                </span>
-              )}
-            </FormLabel>
-            <FormControl>
-              {renderInputByType(field, fieldConfig, isEdit)}
-            </FormControl>
-            {fieldError ? (
-              <FormMessage>{fieldError}</FormMessage>
-            ) : (
-              <FormDescription>
-                {getContextualText(fieldConfig.description, isEdit)}
-              </FormDescription>
+    <FormField
+      control={control}
+      disabled={fieldConfig.disabled}
+      name={fieldConfig.name as Path<T>}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>
+            {fieldConfig.label}
+            {isEdit && fieldConfig.optional && (
+              <span className="ml-1 text-muted-foreground text-sm">
+                (optional)
+              </span>
             )}
-          </FormItem>
-        )}
-      />
-    </div>
+          </FormLabel>
+          <FormControl>
+            {renderInputByType(field, fieldConfig, isEdit)}
+          </FormControl>
+          {fieldError ? (
+            <FormMessage>{fieldError}</FormMessage>
+          ) : (
+            <FormDescription>
+              {getContextualText(fieldConfig.description, isEdit)}
+            </FormDescription>
+          )}
+        </FormItem>
+      )}
+    />
   )
 }
 

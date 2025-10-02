@@ -9,6 +9,7 @@ use App\Http\Controllers\PabloController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Global\PostsController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -40,57 +41,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'destroy' => 'admin.security.role.destroy',
     ]);
 
-    Route::resource('control/provider', ProviderController::class)->names([
-        'index' => 'control.provider',
-        'create' => 'control.provider.create',
-        'store' => 'control.provider.store',
-        'show' => 'control.provider.show',
-        'edit' => 'control.provider.edit',
-        'update' => 'control.provider.update',
-        'destroy' => 'control.provider.destroy',
-    ]);
-
-    Route::resource('control/clients', ClientsController::class)->names([
-        'index' => 'control.clients',
-        'create' => 'control.clients.create',
-        'store' => 'control.clients.store',
-        'show' => 'control.clients.show',
-        'edit' => 'control.clients.edit',
-        'update' => 'control.clients.update',
-        'destroy' => 'control.clients.destroy',
-    ]);
-
-    Route::resource('control/departments', DepartmentsController::class)->names([
-        'index' => 'control.departments',
-        'create' => 'control.departments.create',
-        'store' => 'control.departments.store',
-        'show' => 'control.departments.show',
-        'edit' => 'control.departments.edit',
-        'update' => 'control.departments.update',
-        'destroy' => 'control.departments.destroy',
-    ]);
-    // API endpoint para búsqueda de usuarios
-    Route::get('global/post/search-users', [PostController::class, 'searchUsers'])->name('global.post.search-users');
-
-    Route::resource('global/post', PostController::class)->names([
-        'index' => 'global.post',
-        'create' => 'global.post.create',
-        'store' => 'global.post.store',
-        'show' => 'global.post.show',
-        'edit' => 'global.post.edit',
-        'update' => 'global.post.update',
-        'destroy' => 'global.post.destroy',
-    ]);
-    Route::resource('pablo', PabloController::class)->names([
-        'index' => 'pablo',
-        'create' => 'pablo.create',
-        'store' => 'pablo.store',
-        'show' => 'pablo.show',
-        'edit' => 'pablo.edit',
-        'update' => 'pablo.update',
-        'destroy' => 'pablo.destroy',
+    Route::resource('global/posts', PostsController::class)->names([
+        'index' => 'global.posts',
+        'create' => 'global.posts.create',
+        'store' => 'global.posts.store',
+        'show' => 'global.posts.show',
+        'edit' => 'global.posts.edit',
+        'update' => 'global.posts.update',
+        'destroy' => 'global.posts.destroy'
     ]);
 });
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

@@ -1,14 +1,16 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { columns } from '@/pages/{{routePath}}{{pluralLower}}/columns'
+import { getColumns } from '@/pages/{{routePath}}{{pluralLower}}/columns'
+import { {{pluralLower}} } from '@/routes/{{routePath}}'
+import { paginated } from '@/routes/api/{{routePath}}{{pluralLower}}'
 import { create } from '@/routes/{{routePath}}{{nameLower}}'
-import { type BreadcrumbItem, type {{name}} } from '@/types'
-import { {{nameLower}} }  from '@/routes/{{routePath}}'
+import { type BreadcrumbItem } from '@/types'
+import { useRef } from 'react'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: '{{name}}',
-    href: {{nameLower}}().url,
+    title: '{{plural}}',
+    href: {{pluralLower}}().url,
   },
 ]
 
@@ -16,18 +18,38 @@ const headerActions = [
   {
     label: 'New {{name}}',
     href: create().url,
-    variant: 'outline' as const,
   },
 ]
 
-const {{name}}Index = (props: { data: {{name}}[] }) => {
-  const { data } = props
+const {{plural}}Index = () => {
+  // Use ref to store refetch function from DataTable
+  const refetchRef = useRef<(() => void) | null>(null)
+
+  // Configurar columnas con refetch y opciones de acciones
+  const columns = getColumns({
+    onActionSuccess: () => {
+      // Call refetch from DataTable when action succeeds
+      refetchRef.current?.()
+    },
+    actionsConfig: {
+      canEdit: true,
+      canDelete: true,
+    },
+  })
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data ?? null} header={headerActions} />
+      <DataTable
+        apiUrl={paginated().url}
+        columns={columns}
+        header={headerActions}
+        onRefetch={(refetch) => {
+          // Store refetch function for use in column actions
+          refetchRef.current = refetch
+        }}
+      />
     </AppLayout>
   )
 }
 
-export default {{name}}Index
+export default {{plural}}Index

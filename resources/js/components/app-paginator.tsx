@@ -11,24 +11,30 @@ export default function AppPaginator({
   onPageChange: (page: number) => void
 }) {
   return (
-    <footer className="p-2 border-t text-muted-foreground text-sm">
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
       <Button
         variant="outline"
-        className="ml-2"
+        size="sm"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        className="p-0 sm:px-3 w-8 sm:w-auto h-8 sm:h-9"
       >
-        <ChevronLeft className="mr-2 w-4 h-4" />
+        <ChevronLeft className="w-4 h-4" />
+        <span className="sr-only sm:not-sr-only sm:ml-2">Previous</span>
       </Button>
-      Page {currentPage} of {lastPage}
+      <span className="text-xs whitespace-nowrap">
+        Page {currentPage} of {lastPage}
+      </span>
       <Button
         variant="outline"
-        className="ml-2"
+        size="sm"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === lastPage}
+        className="p-0 sm:px-3 w-8 sm:w-auto h-8 sm:h-9"
       >
-        <ChevronRight className="mr-2 w-4 h-4" />
+        <span className="sr-only sm:not-sr-only sm:mr-2">Next</span>
+        <ChevronRight className="w-4 h-4" />
       </Button>
-    </footer>
+    </div>
   )
 }

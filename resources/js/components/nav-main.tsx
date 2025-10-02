@@ -1,14 +1,14 @@
+import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
-import { type NavMainProps, type NavItem } from '@/types'
+import { type NavItem, type NavMainProps } from '@/types'
 import { Link, usePage } from '@inertiajs/react'
-import { useEffect, useState } from 'react'
-import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Minus, Plus } from 'lucide-react'
 import { CollapsibleContent } from '@radix-ui/react-collapsible'
+import { Minus, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export function NavMain({ data }: { data: NavMainProps }) {
   const page = usePage()
@@ -95,7 +95,7 @@ export function NavMain({ data }: { data: NavMainProps }) {
 
   return (
     <nav aria-label="Main Navigation">
-      <SidebarGroup className="px-2 py-0">
+      <SidebarGroup className="py-0 pr-4">
         <SidebarGroupLabel>Platform</SidebarGroupLabel>
         <ul>{renderNavItems(data.navMain)}</ul>
       </SidebarGroup>
