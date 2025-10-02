@@ -25,6 +25,7 @@ import {
 import useFetch from '@/hooks/use-fetch'
 import { PaginatedResponse } from '@/types'
 import { Link } from '@inertiajs/react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import AppPaginator from './app-paginator'
 import { Button } from './ui/button'
@@ -72,15 +73,17 @@ export function DataTable<TData, TValue>({
   // Internal state for pagination (used when apiUrl is provided)
   const [internalPage, setInternalPage] = useState(1)
   const [internalPerPage, setInternalPerPage] = useState('10')
-
+  const [sortBy, setSortBy] = useState('id')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   // Determine which state to use
   const page = apiUrl ? internalPage : (externalPage ?? 1)
   const perPage = apiUrl ? internalPerPage : (externalPerPage ?? '10')
   const setPageFn = apiUrl ? setInternalPage : externalSetPage
   const setPerPageFn = apiUrl ? setInternalPerPage : externalSetPerPage
-
   // Fetch data if apiUrl is provided
-  const fetchUrl = apiUrl ? `${apiUrl}?page=${page}&perPage=${perPage}` : ''
+  const fetchUrl = apiUrl
+    ? `${apiUrl}?page=${page}&perPage=${perPage}&sortBy=${sortBy}&sortDirection=${sortDirection}`
+    : ''
   const fetchResult = useFetch<PaginatedResponse<TData>>(fetchUrl)
 
   // Expose refetch to parent if callback provided
@@ -120,7 +123,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col px-4 pt-4 rounded-md w-full h-full">
-      <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 border-b">
+      <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 mb-2 border-b">
         {/* Left section: Per page selector and count */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
           {paginated && (
@@ -200,6 +203,33 @@ export function DataTable<TData, TValue>({
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
+                        {header.column.getCanSort() ? (
+                          <button
+                            onClick={() => {
+                              const isAsc =
+                                sortBy === (header.column.id as string) &&
+                                sortDirection === 'asc'
+                              const newDirection = isAsc ? 'desc' : 'asc'
+                              setSortBy(header.column.id as string)
+                              setSortDirection(newDirection)
+                              // If using external pagination, notify parent of page change
+                              if (!apiUrl && externalOnPageChange) {
+                                externalOnPageChange(1) // Reset to first page on sort change
+                              }
+                            }}
+                            className="ml-2"
+                          >
+                            {sortBy === header.column.id ? (
+                              sortDirection === 'desc' ? (
+                                <ChevronUp className="inline-block w-4 h-4 rotate-180" />
+                              ) : (
+                                <ChevronDown className="inline-block w-4 h-4 rotate-180" />
+                              )
+                            ) : (
+                              <ChevronUp className="inline-block w-4 h-4 rotate-180" />
+                            )}
+                          </button>
+                        ) : null}
                       </TableHead>
                     )
                   })}

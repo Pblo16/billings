@@ -16,6 +16,7 @@ class RoleController extends Controller
     {
         return Inertia::render('admin/security/roles/Index');
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -85,7 +86,7 @@ class RoleController extends Controller
             $data = Role::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
 
         return redirect()->route('admin.security.role')->with('success', 'Registro eliminado exitosamente.');

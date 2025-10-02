@@ -55,6 +55,12 @@ class NameResolver
         // Ruta del modelo con path
         $modelWithPath = ($parentPath !== '') ? "{$parentPath}/{$model}" : $model;
 
+        // Ruta del controlador (para file_exists y rutas físicas)
+        $controllerPath = $parentPath;
+
+        // Frontend path (para las páginas React)
+        $frontendPath = ($parentPath !== '') ? "{$parentPath}/{$plural}" : $plural;
+
         return [
             'segments' => $segments,
             'modelSegment' => $modelSegment,
@@ -71,9 +77,11 @@ class NameResolver
             'routePath' => $routePath,
             'routeName' => $routeName,
             'controllerNamespace' => $controllerNamespace,
+            'controllerPath' => $controllerPath,
             'viewFolder' => $viewFolder,
             'viewPath' => $viewPath,
             'modelWithPath' => $modelWithPath,
+            'frontendPath' => $frontendPath,
         ];
     }
 }

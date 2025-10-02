@@ -5,8 +5,9 @@ import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { paginated } from '@/routes/api/users'
 import { store } from '@/routes/global/posts'
-import { FormFieldConfig, Posts } from '@/types'
+import { FormFieldConfig, Posts, SharedData } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { usePage } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -15,6 +16,7 @@ const baseFormSchema = z.object({
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
   user_id: z.number(),
+  colaborator: z.number().optional(),
 })
 
 const createFormSchema = z.object({
@@ -22,6 +24,7 @@ const createFormSchema = z.object({
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
   user_id: z.number(),
+  colaborator: z.number().optional(),
 })
 
 export type PostsFormData = z.infer<typeof baseFormSchema>
@@ -52,6 +55,7 @@ const formFieldsConfig: FormFieldConfig[] = [
       create: 'This is the Slug field.',
       edit: 'This is the Slug field.',
     },
+    onEditDisabled: true,
   },
   {
     name: 'text',
@@ -81,6 +85,22 @@ const formFieldsConfig: FormFieldConfig[] = [
     searchUrl: paginated().url,
     show: 5, // Mostrar 10 resultados en la búsqueda
   },
+
+  {
+    name: 'colaborator',
+    label: 'Colaborator',
+    type: 'select',
+    placeholder: {
+      create: 'Search user...',
+      edit: 'Search user...',
+    },
+    description: {
+      create: 'Search and select a user.',
+      edit: 'Search and select a user.',
+    },
+    searchUrl: paginated().url,
+    show: 5, // Mostrar 10 resultados en la búsqueda
+  },
 ]
 
 interface PostsFormProps {
@@ -97,14 +117,16 @@ const PostsForm = ({
   submitButtonText = 'Submit',
 }: PostsFormProps) => {
   const formSchema = isEdit ? baseFormSchema : createFormSchema
+  const { auth } = usePage<SharedData>().props
 
   const form = useForm<PostsFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: data?.name || '',
-      slug: data?.slug || '',
+      slug: data?.slug || crypto.randomUUID(),
       text: data?.text || '',
-      user_id: data?.user_id || 0,
+      user_id: data?.user_id || auth.user.id,
+      colaborator: data?.colaborator || undefined,
     },
   })
 

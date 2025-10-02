@@ -1,7 +1,7 @@
 'use client'
 
 import { TableAction, TableActions } from '@/components/table-actions'
-import { destroy, edit } from '@/routes/users'
+import { destroy, edit } from '@/routes/global/posts'
 import { GetColumnsOptions, Posts } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 export const ActionsCell = ({
@@ -20,13 +20,13 @@ export const ActionsCell = ({
 
   const actions: TableAction[] = [
     {
-      label: 'Edit user',
+      label: 'Edit Posts',
       href: edit(id).url,
       enabled: canEdit,
       variant: 'default',
     },
     {
-      label: 'Delete user',
+      label: 'Delete Posts',
       enabled: canDelete,
       variant: 'destructive',
       requiresConfirmation: true,
@@ -47,6 +47,27 @@ export const getColumns = (
   {
     accessorKey: 'name',
     header: 'Name',
+  },
+  {
+    accessorKey: 'colaborator',
+    header: 'Colaborator',
+    cell: ({ row }) => {
+      const colaborator = row.original.colaborator
+
+      // If colaborator is a User object (relationship loaded), show the name
+      if (typeof colaborator === 'object' && colaborator?.name) {
+        return <span>{colaborator.name}</span>
+      }
+
+      // If colaborator is just an ID or null/undefined, show appropriate message
+      return (
+        <span>{colaborator ? `ID: ${colaborator}` : 'No colaborator'}</span>
+      )
+    },
+  },
+  {
+    accessorKey: 'slug',
+    header: 'Slug',
   },
   {
     id: 'actions',

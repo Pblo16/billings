@@ -95,7 +95,7 @@ class UsersController extends Controller
 
             return back()->with('success', 'User deleted successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 
@@ -120,7 +120,7 @@ class UsersController extends Controller
             $users = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn($user) => [
+                ->map(fn ($user) => [
                     'value' => (string) $user->id,
                     'label' => $user->name,
                 ]);
@@ -135,6 +135,13 @@ class UsersController extends Controller
         } else {
             // Default sorting
             $query->orderBy('id', 'asc');
+        }
+
+        if ($request->input('posts') === 'all') {
+            $query->with('posts', 'colaboratedPosts');
+        }
+        if ($request->input('colaborator') === 'all') {
+            $query->with('colaboratedPosts');
         }
 
         // Paginate the results for table

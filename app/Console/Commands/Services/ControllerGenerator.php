@@ -28,6 +28,15 @@ class ControllerGenerator
 
         // Generar reglas de validación usando FieldManager
         $validationRules = $this->fieldManager->generateValidationRules($fields);
+
+        // Si el controlador ya existe, solo actualizar validaciones
+        if (file_exists($controllerPath)) {
+            $this->updateControllerValidations($controllerPath, $validationRules);
+
+            return;
+        }
+
+        // Si no existe, crear nuevo controlador
         $validationString = implode(",\n                ", $validationRules);
 
         // Construir namespace con parent path
@@ -51,6 +60,72 @@ class ControllerGenerator
         $this->command->info("✅ Controlador {$config['controller']} creado con validaciones personalizadas");
     }
 
+    /**
+     * Update validation rules in existing controller
+     */
+    private function updateControllerValidations(string $controllerPath, array $newValidationRules): void
+    {
+        $content = file_get_contents($controllerPath);
+
+        // Extraer las validaciones existentes de store() y update()
+        foreach (['store', 'update'] as $method) {
+            // Buscar el bloque de validación en cada método
+            $pattern = "/(public function {$method}\([^)]*\)[^{]*\{[^}]*\\\$request->validate\(\[\s*)(.*?)(\s*\]\);)/s";
+
+            if (preg_match($pattern, $content, $matches)) {
+                $existingValidations = $matches[2];
+
+                // Parsear validaciones existentes
+                $existingRules = $this->parseExistingValidations($existingValidations);
+
+                // Agregar solo las nuevas reglas
+                foreach ($newValidationRules as $rule) {
+                    // Extraer el nombre del campo de la regla (antes de "=>")
+                    if (preg_match("/^'([^']+)'/", $rule, $fieldMatch)) {
+                        $fieldName = $fieldMatch[1];
+
+                        // Si el campo no existe en las validaciones actuales, agregarlo
+                        if (! isset($existingRules[$fieldName])) {
+                            $existingRules[$fieldName] = $rule;
+                        }
+                    }
+                }
+
+                // Reconstruir el string de validaciones
+                $updatedValidationString = implode(",\n      ", array_values($existingRules));
+
+                // Reemplazar en el contenido usando callback para evitar problemas con $1, $2, etc
+                $content = preg_replace_callback($pattern, function ($matches) use ($updatedValidationString) {
+                    return $matches[1].$updatedValidationString.$matches[3];
+                }, $content, 1);
+            }
+        }
+
+        file_put_contents($controllerPath, $content);
+        $this->command->info('✅ Controlador actualizado: nuevas validaciones agregadas');
+    }
+
+    /**
+     * Parse existing validation rules from controller
+     */
+    private function parseExistingValidations(string $validationsString): array
+    {
+        $rules = [];
+
+        // Dividir por líneas y procesar cada regla
+        $lines = array_filter(array_map('trim', explode("\n", $validationsString)));
+
+        foreach ($lines as $line) {
+            // Extraer nombre del campo
+            if (preg_match("/^'([^']+)'\s*=>/", $line, $match)) {
+                $fieldName = $match[1];
+                $rules[$fieldName] = rtrim($line, ',');
+            }
+        }
+
+        return $rules;
+    }
+
     private function generateControllerTemplate(
         string $controllerNamespace,
         string $modelNamespace,
@@ -58,7 +133,7 @@ class ControllerGenerator
         string $validationString
     ): string {
         $viewBase = ($config['parentPathLower'] ? $config['parentPathLower'].'/' : '').$config['pluralLower'];
-        
+
         // Generar la lista de campos para el select del paginated
         $selectFields = $this->fieldManager->getFieldNamesForSelectFromFields();
 

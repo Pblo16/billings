@@ -1,15 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\Security\RoleController;
-use App\Http\Controllers\Control\ClientsController;
-use App\Http\Controllers\Control\DepartmentsController;
-use App\Http\Controllers\Control\ProviderController;
-use App\Http\Controllers\Global\PostController;
-use App\Http\Controllers\PabloController;
+use App\Http\Controllers\Global\PostsController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Global\PostsController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -48,10 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'show' => 'global.posts.show',
         'edit' => 'global.posts.edit',
         'update' => 'global.posts.update',
-        'destroy' => 'global.posts.destroy'
+        'destroy' => 'global.posts.destroy',
     ]);
 });
 
-
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';
