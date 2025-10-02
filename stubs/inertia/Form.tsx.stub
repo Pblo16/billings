@@ -1,96 +1,77 @@
-import AppPaginator from '@/components/app-paginator'
-import { DataTable } from '@/components/data-table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import useFetch from '@/hooks/use-fetch'
-import AppLayout from '@/layouts/app-layout'
-import { columns, {{name}}ActionsCell } from '@/pages/{{modelLowerPlural}}/columns'
-import { {{modelLowerPlural}} } from '@/routes'
-import { paginated } from '@/routes/api/{{modelLowerPlural}}'
-import { create } from '@/routes/{{modelLowerPlural}}'
-import { type BreadcrumbItem, type {{name}} } from '@/types'
-import { useState } from 'react'
+import FormGrid from '@/components/form-grid'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import FormFieldRenderer from '@/components/ui/form-field-renderer'
+import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { store } from '@/routes/{{routePath}}{{modelLower}}'
+import { FormFieldConfig, {{name}} } from '@/types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: '{{namePlural}}',
-    href: {{modelLowerPlural}}().url,
-  },
+const baseFormSchema = z.object({
+{{zodSchema}}
+})
+
+const createFormSchema = z.object({
+{{zodSchema}}
+})
+
+export type {{name}}FormData = z.infer<typeof baseFormSchema>
+
+const formFieldsConfig: FormFieldConfig[] = [
+{{formFieldsConfig}}
 ]
 
-const headerActions = [
-  {
-    label: 'New {{name}}',
-    href: create().url,
-  },
-]
+interface {{name}}FormProps {
+  data: {{name}} | null
+  isEdit?: boolean
+  onSubmit?: (values: {{name}}FormData) => void
+  submitButtonText?: string
+}
 
-const {{namePlural}}Index = () => {
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState('10')
+const {{name}}Form = ({
+  data,
+  isEdit = false,
+  onSubmit,
+  submitButtonText = 'Submit',
+}: {{name}}FormProps) => {
+  const formSchema = isEdit ? baseFormSchema : createFormSchema
 
-  const { data, loading, error, refetch } = useFetch(
-    `${paginated().url}?page=${page}&perPage=${perPage}`,
-  )
+  const form = useForm<{{name}}FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+{{defaultValues}}
+    },
+  })
 
-  // Create columns with refetch callback
-  const columnsWithActions = columns.map((col) => {
-    if (col.id === 'actions') {
-      return {
-        ...col,
-        cell: ({ row }: any) => {
-          const {{modelLower}} = row.original
-          return <{{name}}ActionsCell {{modelLower}}={{modelLower}} onDelete={refetch} />
-        },
-      }
-    }
-    return col
+  const { handleSubmit } = useFormSubmit<{{name}}FormData>({
+    onSubmit,
+    isEdit,
+    entityId: data?.id,
+    entityPath: store().url,
   })
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable
-        loading={loading}
-        error={error}
-        columns={columnsWithActions}
-        data={data?.data ?? []}
-        header={headerActions}
-        paginator={
-          data && (
-            <AppPaginator
-              currentPage={data.current_page}
-              lastPage={data.last_page}
-              onPageChange={(newPage) => setPage(newPage)}
-            />
-          )
-        }
-        count={
-          <Select
-            value={perPage}
-            onValueChange={(value) => {
-              setPerPage(value)
-              setPage(1) // Reset to first page when changing items per page
-            }}
-          >
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Per page" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        }
-      ></DataTable>
-    </AppLayout>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <FormGrid>
+        {formFieldsConfig.map((fieldConfig) => (
+          <FormFieldRenderer
+            key={fieldConfig.name}
+            control={form.control}
+            fieldConfig={fieldConfig}
+            isEdit={isEdit}
+            errors={form.formState.errors}
+          />
+        ))}
+        </FormGrid>
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
+        </Button>
+      </form>
+    </Form>
   )
 }
 
-export default {{namePlural}}Index
+export default {{name}}Form
