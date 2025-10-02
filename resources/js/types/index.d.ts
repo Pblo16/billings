@@ -5,6 +5,38 @@ export interface Auth {
     user: User;
 }
 
+interface GetColumnsOptions {
+    onActionSuccess?: () => void
+    actionsConfig?: {
+        canEdit?: boolean
+        canDelete?: boolean
+    }
+}
+
+export interface PaginatedResponse<T> {
+    current_page: number
+    data: T[]
+    first_page_url: string
+    from: any
+    last_page: number
+    last_page_url: string
+    links: Link[]
+    next_page_url: any
+    path: string
+    per_page: number
+    prev_page_url: any
+    to: any
+    total: number
+}
+
+export interface Link {
+    url?: string
+    label: string
+    page?: number
+    active: boolean
+}
+
+
 export interface BreadcrumbItem {
     title: string;
     href: string;
@@ -168,4 +200,21 @@ export interface Pablo {
 
 export interface PabloForm {
     pablo: string;
+}
+
+export interface Posts {
+    id: number;
+    name: string;
+    slug: string;
+    text?: string;
+    user_id: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PostsForm {
+    name: string;
+    slug: string;
+    text?: string;
+    user_id: number;
 }

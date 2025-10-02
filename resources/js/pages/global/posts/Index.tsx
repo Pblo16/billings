@@ -1,27 +1,27 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { getColumns } from '@/pages/{{routePath}}{{pluralLower}}/columns'
-import { {{pluralLower}} } from '@/routes/{{routePath}}'
-import { paginated } from '@/routes/api/{{routePath}}{{pluralLower}}'
-import { create } from '@/routes/{{routePath}}{{nameLower}}'
+import { paginated } from '@/routes/api/global/posts'
+import { posts } from '@/routes/global/'
+import { create } from '@/routes/global/posts'
 import { type BreadcrumbItem } from '@/types'
 import { useRef } from 'react'
+import { getColumns } from './columns'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: '{{plural}}',
-    href: {{pluralLower}}().url,
+    title: 'Posts',
+    href: posts().url,
   },
 ]
 
 const headerActions = [
   {
-    label: 'New {{name}}',
+    label: 'New Posts',
     href: create().url,
   },
 ]
 
-const {{plural}}Index = () => {
+const PostsIndex = () => {
   // Use ref to store refetch function from DataTable
   const refetchRef = useRef<(() => void) | null>(null)
 
@@ -52,4 +52,4 @@ const {{plural}}Index = () => {
   )
 }
 
-export default {{plural}}Index
+export default PostsIndex

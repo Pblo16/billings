@@ -9,6 +9,7 @@ use App\Http\Controllers\PabloController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Global\PostsController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -81,6 +82,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ]);
 });
 
+
+    Route::resource('global/posts', PostsController::class)->names([
+        'index' => 'global.posts',
+        'create' => 'global.posts.create',
+        'store' => 'global.posts.store',
+        'show' => 'global.posts.show',
+        'edit' => 'global.posts.edit',
+        'update' => 'global.posts.update',
+        'destroy' => 'global.posts.destroy'
+    ]);
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
