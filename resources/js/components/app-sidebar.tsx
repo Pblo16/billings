@@ -77,12 +77,12 @@ export function AppSidebar() {
     <Sidebar
       collapsible="icon"
       variant="inset"
-      className="border-r-2 overflow-visible"
+      className="border-sidebar-border border-r overflow-hidden"
     >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton size="lg" asChild className="transition-all">
               <Link href={dashboard()} prefetch>
                 <AppLogo />
               </Link>

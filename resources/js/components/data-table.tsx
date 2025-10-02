@@ -123,7 +123,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col px-4 pt-4 rounded-md w-full h-full">
-      <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 border-b">
+      <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 mb-2 border-b">
         {/* Left section: Per page selector and count */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
           {paginated && (
