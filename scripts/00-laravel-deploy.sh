@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-cho "Verifying frontend assets..."
-if [ ! -f /var/www/html/public/build/assets/app-Xxil5sf5.js ]; then
-  echo "ERROR: Frontend assets not found! Did you run pnpm build in CI?"
+echo "Verifying frontend assets directory..."
+if [ ! -d /var/www/html/public/build/assets ]; then
+  echo "ERROR: Frontend assets directory not found! Did you run pnpm build in CI?"
   exit 1
 fi
 
