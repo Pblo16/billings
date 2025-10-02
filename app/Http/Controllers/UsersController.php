@@ -102,7 +102,7 @@ class UsersController extends Controller
     public function paginatedUsers(Request $request)
     {
         $query = User::query();
-        
+
         // Handle ID-specific search (for combobox selected value retrieval)
         if ($id = $request->input('id')) {
             $query->where('id', $id);
@@ -134,7 +134,7 @@ class UsersController extends Controller
             $query->orderBy($sortBy, $sortDirection);
         } else {
             // Default sorting
-            $query->orderBy('id', 'desc');
+            $query->orderBy('id', 'asc');
         }
 
         // Paginate the results for table
@@ -143,5 +143,4 @@ class UsersController extends Controller
 
         return response()->json($users);
     }
-
 }
