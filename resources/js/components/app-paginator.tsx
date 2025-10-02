@@ -22,7 +22,7 @@ export default function AppPaginator({
         <ChevronLeft className="w-4 h-4" />
         <span className="sr-only sm:not-sr-only sm:ml-2">Previous</span>
       </Button>
-      <span className="text-xs sm:text-sm whitespace-nowrap">
+      <span className="text-xs whitespace-nowrap">
         Page {currentPage} of {lastPage}
       </span>
       <Button

@@ -102,9 +102,27 @@ class PostsController extends Controller
    */
   public function paginated(Request $request)
   {
-    $perPage = $request->get('perPage', 10);
-    $query = Posts::query()->select('id', 'name', 'slug', 'text', 'user_id', 'created_at')->paginate($perPage);
+    $query = Posts::query();
 
-    return response()->json($query);
+    // Apply search filter if provided
+    if ($search = $request->input('search')) {
+      $query->where('name', 'like', "%{$search}%")
+        ->orWhere('user_id', 'like', "%{$search}%");
+    }
+
+    // Apply sorting if provided
+    if ($sortBy = $request->input('sortBy')) {
+      $sortDirection = $request->input('sortDirection', 'asc');
+      $query->orderBy($sortBy, $sortDirection);
+    } else {
+      // Default sorting
+      $query->orderBy('id', 'desc');
+    }
+
+    // Paginate the results
+    $perPage = $request->input('perPage', 10);
+    $roles = $query->paginate($perPage);
+
+    return response()->json($roles);
   }
 }

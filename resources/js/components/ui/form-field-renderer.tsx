@@ -97,26 +97,27 @@ const renderSelectInput = <T extends FieldValues>(
   fieldConfig: FormFieldConfig,
   isEdit: boolean,
 ) => {
-  // Si tiene searchUrl, usar AsyncCombobox para búsqueda dinámica
-  if (fieldConfig.searchUrl) {
+  // Si tiene searchUrl o options, usar AsyncCombobox
+  if (fieldConfig.searchUrl || fieldConfig.options) {
     return (
       <AsyncCombobox
         searchUrl={fieldConfig.searchUrl}
-        initialOptions={fieldConfig.options ?? []}
+        options={fieldConfig.options}
         value={field.value}
         onChange={(value) => field.onChange(value)}
         readOnly={
           fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)
         }
         placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
+        show={fieldConfig.show}
       />
     )
   }
 
-  // Sino, usar Combobox estático
+  // Fallback a Combobox (aunque ya no debería llegar aquí)
   return (
     <Combobox
-      options={fieldConfig.options ?? []}
+      options={[]}
       value={field.value}
       onChange={(value) => field.onChange(value)}
       readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}

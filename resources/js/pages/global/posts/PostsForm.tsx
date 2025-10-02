@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { paginated } from '@/routes/api/users'
 import { store } from '@/routes/global/posts'
 import { FormFieldConfig, Posts } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,14 +14,14 @@ const baseFormSchema = z.object({
   name: z.string().min(2).max(255),
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
-  user_id: z.number()
+  user_id: z.number(),
 })
 
 const createFormSchema = z.object({
   name: z.string().min(2).max(255),
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
-  user_id: z.number()
+  user_id: z.number(),
 })
 
 export type PostsFormData = z.infer<typeof baseFormSchema>
@@ -68,16 +69,18 @@ const formFieldsConfig: FormFieldConfig[] = [
   {
     name: 'user_id',
     label: 'User id',
-    type: 'number',
+    type: 'select',
     placeholder: {
-      create: 'Enter User id',
-      edit: 'Enter User id',
+      create: 'Search user...',
+      edit: 'Search user...',
     },
     description: {
-      create: 'This is the User id field.',
-      edit: 'This is the User id field.',
+      create: 'Search and select a user.',
+      edit: 'Search and select a user.',
     },
-  }
+    searchUrl: paginated().url,
+    show: 5, // Mostrar 10 resultados en la búsqueda
+  },
 ]
 
 interface PostsFormProps {
@@ -101,7 +104,7 @@ const PostsForm = ({
       name: data?.name || '',
       slug: data?.slug || '',
       text: data?.text || '',
-      user_id: data?.user_id || 0
+      user_id: data?.user_id || 0,
     },
   })
 
@@ -116,15 +119,15 @@ const PostsForm = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormGrid>
-        {formFieldsConfig.map((fieldConfig) => (
-          <FormFieldRenderer
-            key={fieldConfig.name}
-            control={form.control}
-            fieldConfig={fieldConfig}
-            isEdit={isEdit}
-            errors={form.formState.errors}
-          />
-        ))}
+          {formFieldsConfig.map((fieldConfig) => (
+            <FormFieldRenderer
+              key={fieldConfig.name}
+              control={form.control}
+              fieldConfig={fieldConfig}
+              isEdit={isEdit}
+              errors={form.formState.errors}
+            />
+          ))}
         </FormGrid>
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving...' : submitButtonText}

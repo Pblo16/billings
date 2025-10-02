@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/sidebar'
 import { dashboard, users } from '@/routes'
 import { role } from '@/routes/admin/security'
-import { clients, departments, provider } from '@/routes/control'
 import { posts } from '@/routes/global'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
@@ -58,28 +57,6 @@ const mainNavItems: NavMainProps = {
       ],
     },
     {
-      title: 'Control',
-      href: '#',
-      icon: Building2,
-      items: [
-        {
-          title: 'Providers',
-          href: provider(),
-          icon: ScanLine,
-        },
-        {
-          title: 'Clients',
-          href: clients(),
-          icon: ScanLine,
-        },
-        {
-          title: 'Departments',
-          href: departments(),
-          icon: ScanLine,
-        },
-      ],
-    },
-    {
       title: 'Global',
       href: '#',
       icon: Building2,
@@ -97,7 +74,11 @@ const footerNavItems: NavItem[] = []
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" variant="inset" className="border-r-2">
+    <Sidebar
+      collapsible="icon"
+      variant="inset"
+      className="border-r-2 overflow-visible"
+    >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

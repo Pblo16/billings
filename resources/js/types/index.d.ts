@@ -2,7 +2,15 @@ import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
-    user: User;
+    options?: { value: string; label: string }[]; // array de cualquier tamaño (opciones manuales)
+    searchUrl?: string; // URL para búsqueda asíncrona (usado con type 'select')
+    disabled?: boolean;
+    readOnly?: boolean;
+    onEditReadOnly?: boolean;
+    colspan?: number; // Number of columns to span in a grid layout
+    rowspan?: number; // Number of rows to span in a grid layout
+    onEditDisabled?: boolean;
+    show?: number; // Cantidad de resultados a mostrar en la paginación de búsqueda asíncrona (default: 10)er;
 }
 
 interface GetColumnsOptions {
@@ -130,20 +138,10 @@ export interface FormFieldConfig {
     colspan?: number; // Number of columns to span in a grid layout
     rowspan?: number; // Number of rows to span in a grid layout
     onEditDisabled?: boolean;
+    show?: number;
 }
 
-export interface Product {
-    id: number;
-    name: string;
-    price?: number;
-    created_at?: string;
-    updated_at?: string;
-}
 
-export interface ProductForm {
-    name: string;
-    price?: number;
-}
 export interface Role {
     id: number;
     name: string;
@@ -155,51 +153,6 @@ export interface Role {
 export interface RoleForm {
     name: string;
     guard_name: string;
-}
-export interface Provider {
-    id: number;
-    name: string;
-    average?: number;
-    created_at?: string;
-    updated_at?: string;
-}
-
-export interface ProviderForm {
-    name: string;
-    average?: number;
-}
-export interface Clients {
-    id: number;
-    name: string;
-    phone?: string;
-    created_at?: string;
-    updated_at?: string;
-}
-
-export interface ClientsForm {
-    name: string;
-    phone?: string;
-}
-export interface Departments {
-    id: number;
-    name: string;
-    created_at?: string;
-    updated_at?: string;
-}
-
-export interface DepartmentsForm {
-    name: string;
-}
-
-export interface Pablo {
-    id: number;
-    pablo: string;
-    created_at?: string;
-    updated_at?: string;
-}
-
-export interface PabloForm {
-    pablo: string;
 }
 
 export interface Posts {

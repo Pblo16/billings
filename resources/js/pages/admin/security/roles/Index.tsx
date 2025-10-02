@@ -1,9 +1,11 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { columns } from '@/pages/admin/security/roles/columns'
+import { getColumns } from '@/pages/users/columns'
 import { role } from '@/routes/admin/security/'
 import { create } from '@/routes/admin/security/role'
-import { type BreadcrumbItem, type Role } from '@/types'
+import { paginated } from '@/routes/api/security/roles'
+import { type BreadcrumbItem } from '@/types'
+import { useRef } from 'react'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -20,12 +22,33 @@ const headerActions = [
   },
 ]
 
-const RoleIndex = (props: { data: Role[] }) => {
-  const { data } = props
+const RoleIndex = () => {
+  // Use ref to store refetch function from DataTable
+  const refetchRef = useRef<(() => void) | null>(null)
+
+  // Configurar columnas con refetch y opciones de acciones
+  const columns = getColumns({
+    onActionSuccess: () => {
+      // Call refetch from DataTable when action succeeds
+      refetchRef.current?.()
+    },
+    actionsConfig: {
+      canEdit: true,
+      canDelete: true,
+    },
+  })
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data ?? null} header={headerActions} />
+      <DataTable
+        apiUrl={paginated().url}
+        columns={columns}
+        header={headerActions}
+        onRefetch={(refetch) => {
+          // Store refetch function for use in column actions
+          refetchRef.current = refetch
+        }}
+      />
     </AppLayout>
   )
 }

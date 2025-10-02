@@ -119,7 +119,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="flex flex-col px-4 border-2 rounded-md w-full h-full">
+    <div className="flex flex-col px-4 pt-4 rounded-md w-full h-full">
       <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 border-b">
         {/* Left section: Per page selector and count */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
@@ -142,7 +142,7 @@ export function DataTable<TData, TValue>({
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-muted-foreground text-xs sm:text-sm whitespace-nowrap">
+              <div className="text-muted-foreground text-xs whitespace-nowrap">
                 Showing {paginated.from ?? 0} to {paginated.to ?? 0} of{' '}
                 {paginated.total} results
               </div>
@@ -185,7 +185,7 @@ export function DataTable<TData, TValue>({
           Error: {error.message}
         </div>
       )}
-      {rowsData.length > 0 && !loading && !error && (
+      {rowsData.length >= 0 && !loading && !error && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

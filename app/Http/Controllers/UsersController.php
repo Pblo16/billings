@@ -101,38 +101,47 @@ class UsersController extends Controller
 
     public function paginatedUsers(Request $request)
     {
-        $perPage = $request->get('perPage', 10);
-        $query = User::query()->select('id', 'name', 'email', 'created_at')->paginate($perPage);
+        $query = User::query();
+        
+        // Handle ID-specific search (for combobox selected value retrieval)
+        if ($id = $request->input('id')) {
+            $query->where('id', $id);
+        }
 
-        return response()->json($query);
-    }
-    /**
-     * Search users with pagination for combobox
-     */
-    public function searchUsers(Request $request)
-    {
-        $search = $request->input('search', '');
-        $id = $request->input('id');
-        $perPage = $request->input('per_page', 10);
+        // Apply search filter if provided
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        }
 
-        $users = \App\Models\User::query()
-            ->when($id, function ($query, $id) {
-                // Si se busca por ID específico, buscar solo ese usuario
-                $query->where('id', $id);
-            })
-            ->when($search && !$id, function ($query) use ($search) {
-                // Si hay búsqueda de texto y no es búsqueda por ID
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->select('id', 'name')
-            ->limit($perPage)
-            ->get()
-            ->map(fn($user) => [
-                'value' => (string) $user->id,
-                'label' => $user->name,
-            ]);
+        // Handle combobox format request
+        if ($request->input('format') === 'combobox') {
+            $perPage = $request->input('per_page', 10);
+            $users = $query->select('id', 'name')
+                ->limit($perPage)
+                ->get()
+                ->map(fn($user) => [
+                    'value' => (string) $user->id,
+                    'label' => $user->name,
+                ]);
+
+            return response()->json($users);
+        }
+
+        // Default table format - apply sorting if provided
+        if ($sortBy = $request->input('sortBy')) {
+            $sortDirection = $request->input('sortDirection', 'asc');
+            $query->orderBy($sortBy, $sortDirection);
+        } else {
+            // Default sorting
+            $query->orderBy('id', 'desc');
+        }
+
+        // Paginate the results for table
+        $perPage = $request->input('perPage', 10);
+        $users = $query->paginate($perPage);
 
         return response()->json($users);
     }
+
 }

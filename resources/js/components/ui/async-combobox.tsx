@@ -23,11 +23,12 @@ interface AsyncComboboxProps {
   value?: string | number
   onChange?: (value: string | number) => void
   readOnly?: boolean
-  searchUrl: string // URL del endpoint para buscar
-  initialOptions?: { value: string; label: string }[] // Opciones iniciales
+  searchUrl?: string // URL del endpoint para buscar (opcional si se usan options)
+  options?: { value: string; label: string }[] // Opciones manuales (sin búsqueda asíncrona)
   placeholder?: string
   emptyMessage?: string
   debounceMs?: number
+  show?: number // Cantidad de resultados a mostrar en la paginación
 }
 
 export function AsyncCombobox({
@@ -35,19 +36,26 @@ export function AsyncCombobox({
   onChange,
   readOnly = false,
   searchUrl,
-  initialOptions = [],
+  options: manualOptions,
   placeholder = 'Search an option',
   emptyMessage = 'No option found.',
   debounceMs = 300,
+  show = 10,
 }: AsyncComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
-  const [options, setOptions] = React.useState(initialOptions)
+  const [options, setOptions] = React.useState<
+    { value: string; label: string }[]
+  >(manualOptions || [])
   const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
   const [selectedOptionCache, setSelectedOptionCache] = React.useState<{
     value: string
     label: string
   } | null>(null)
+
+  // Determinar si usamos opciones manuales o búsqueda asíncrona
+  const useAsyncSearch = !manualOptions && !!searchUrl
 
   // Convertir el valor externo a string para la comparación
   const stringValue =
@@ -57,92 +65,118 @@ export function AsyncCombobox({
 
   // Encontrar la opción seleccionada en las opciones actuales o en el cache
   const selectedOption =
-    options.find((option) => option.value === stringValue) ||
+    (Array.isArray(options) &&
+      options.find((option) => option.value === stringValue)) ||
     (selectedOptionCache?.value === stringValue ? selectedOptionCache : null)
 
   // Función para buscar en el servidor
-  const fetchOptions = React.useCallback(
-    async (searchTerm: string) => {
-      if (!searchUrl) return
+  const fetchOptions = async (searchTerm: string) => {
+    if (!searchUrl || !useAsyncSearch) return
 
-      setLoading(true)
-      try {
-        const url = new URL(searchUrl, window.location.origin)
-        url.searchParams.append('search', searchTerm)
-        url.searchParams.append('per_page', '10')
+    setLoading(true)
+    setError(null)
+    try {
+      const url = new URL(searchUrl, window.location.origin)
+      url.searchParams.append('search', searchTerm)
+      url.searchParams.append('per_page', show.toString())
+      url.searchParams.append('format', 'combobox') // Indicar formato para combobox
 
-        const response = await fetch(url.toString(), {
-          headers: {
-            Accept: 'application/json',
-          },
-        })
+      const response = await fetch(url.toString(), {
+        headers: {
+          Accept: 'application/json',
+        },
+      })
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-
-        const data = await response.json()
-        setOptions(data)
-      } catch (error) {
-        console.error('Error fetching options:', error)
-        setOptions([])
-      } finally {
-        setLoading(false)
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`)
       }
-    },
-    [searchUrl],
-  )
+
+      const data = await response.json()
+
+      // Validar que la respuesta sea un array
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response format: expected array')
+      }
+
+      setOptions(data)
+      setError(null)
+    } catch (error) {
+      console.error('Error fetching options:', error)
+      setError(
+        error instanceof Error ? error.message : 'Failed to load options',
+      )
+      setOptions([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Efecto para cargar opciones iniciales al abrir
+  React.useEffect(() => {
+    if (!useAsyncSearch || !open || search || loading) return
+
+    // Cargar opciones iniciales solo una vez al abrir
+    fetchOptions('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, useAsyncSearch, search]) // No incluir fetchOptions para evitar ciclo
 
   // Efecto para buscar cuando cambia el término de búsqueda con debounce
   React.useEffect(() => {
-    if (search) {
-      const timeoutId = setTimeout(() => {
-        fetchOptions(search)
-      }, debounceMs)
+    if (!useAsyncSearch || !search) return // Si usamos opciones manuales o no hay búsqueda, no hacer nada
 
-      return () => clearTimeout(timeoutId)
-    } else {
-      // Sin búsqueda, usar opciones iniciales
-      setOptions(initialOptions)
-    }
-  }, [search, fetchOptions, debounceMs, initialOptions])
+    const timeoutId = setTimeout(() => {
+      fetchOptions(search)
+    }, debounceMs)
 
-  // Resetear opciones al cerrar si no hay búsqueda
+    return () => clearTimeout(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, useAsyncSearch, debounceMs]) // No incluir fetchOptions para evitar ciclo
+
+  // Resetear opciones al cerrar
   React.useEffect(() => {
-    if (!open && !search) {
-      setOptions(initialOptions)
-    }
-  }, [open, initialOptions])
+    if (!useAsyncSearch) return // Si usamos opciones manuales, no resetear
 
-  // Inicializar el cache con el valor seleccionado de las opciones iniciales
+    if (!open) {
+      setOptions([])
+      setError(null)
+    }
+  }, [open, useAsyncSearch])
+
+  // Inicializar el cache con el valor seleccionado de las opciones manuales
   React.useEffect(() => {
-    if (stringValue && initialOptions.length > 0 && !selectedOptionCache) {
-      const initialSelected = initialOptions.find(
-        (opt) => opt.value === stringValue,
+    if (
+      stringValue &&
+      manualOptions &&
+      manualOptions.length > 0 &&
+      !selectedOptionCache
+    ) {
+      const initialSelected = manualOptions.find(
+        (opt: { value: string; label: string }) => opt.value === stringValue,
       )
       if (initialSelected) {
         setSelectedOptionCache(initialSelected)
       }
     }
-  }, [stringValue, initialOptions, selectedOptionCache])
+  }, [stringValue, manualOptions, selectedOptionCache])
 
-  // Buscar el label del valor seleccionado si no está en las opciones iniciales
+  // Buscar el label del valor seleccionado si no está en las opciones
   React.useEffect(() => {
     const fetchSelectedOption = async () => {
       // Solo buscar si:
-      // 1. Hay un valor seleccionado
-      // 2. No está en las opciones actuales
-      // 3. No está en el cache
-      // 4. Hay una URL de búsqueda
-      if (!stringValue || !searchUrl || selectedOption || loading) {
+      // 1. Usamos búsqueda asíncrona
+      // 2. Hay un valor seleccionado
+      // 3. No está en las opciones actuales
+      // 4. No está en el cache
+      // 5. Hay una URL de búsqueda
+      if (!useAsyncSearch || !stringValue || !searchUrl || selectedOption) {
         return
       }
 
-      setLoading(true)
       try {
         const url = new URL(searchUrl, window.location.origin)
         url.searchParams.append('id', stringValue)
         url.searchParams.append('per_page', '1')
+        url.searchParams.append('format', 'combobox') // Indicar formato para combobox
 
         const response = await fetch(url.toString(), {
           headers: {
@@ -151,30 +185,28 @@ export function AsyncCombobox({
         })
 
         if (!response.ok) {
-          throw new Error('Network response was not ok')
+          throw new Error(`Server error: ${response.status}`)
         }
 
         const data = await response.json()
+
+        // Validar que la respuesta sea un array
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format: expected array')
+        }
+
         if (data && data.length > 0) {
           const foundOption = data[0]
           setSelectedOptionCache(foundOption)
-          // Agregar también a las opciones para evitar búsquedas futuras
-          setOptions((prevOptions) => {
-            const exists = prevOptions.some(
-              (opt) => opt.value === foundOption.value,
-            )
-            return exists ? prevOptions : [foundOption, ...prevOptions]
-          })
         }
       } catch (error) {
         console.error('Error fetching selected option:', error)
-      } finally {
-        setLoading(false)
       }
     }
 
     fetchSelectedOption()
-  }, [stringValue, searchUrl, selectedOption, loading])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stringValue, useAsyncSearch]) // Solo buscar cuando cambia el valor seleccionado
 
   return (
     <Popover
@@ -187,7 +219,7 @@ export function AsyncCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          aria-readOnly={readOnly}
+          aria-readonly={readOnly ? 'true' : undefined}
           className={cn(
             'justify-between w-full',
             readOnly && 'cursor-not-allowed opacity-60',
@@ -217,12 +249,18 @@ export function AsyncCombobox({
                   <span className="ml-2 text-sm">Searching...</span>
                 </div>
               )}
-              {!loading && options.length === 0 && (
+              {error && !loading && (
+                <div className="p-4 text-destructive text-sm text-center">
+                  <p className="font-medium">Error loading options</p>
+                  <p className="mt-1 text-muted-foreground text-xs">{error}</p>
+                </div>
+              )}
+              {!loading && !error && options.length === 0 && (
                 <CommandEmpty>{emptyMessage}</CommandEmpty>
               )}
-              {!loading && options.length > 0 && (
+              {!loading && !error && options.length > 0 && (
                 <CommandGroup>
-                  {options.map((option) => (
+                  {options.map((option: { value: string; label: string }) => (
                     <CommandItem
                       key={option.value}
                       value={option.value}
@@ -260,9 +298,14 @@ export function AsyncCombobox({
                   ))}
                 </CommandGroup>
               )}
-              {!search && !loading && (
+              {!search && !loading && !error && useAsyncSearch && (
                 <div className="p-2 border-t text-muted-foreground text-xs text-center">
-                  Showing {options.length} results. Type to search...
+                  Type to search...
+                </div>
+              )}
+              {search && !loading && !error && useAsyncSearch && (
+                <div className="p-2 border-t text-muted-foreground text-xs text-center">
+                  Showing {options.length} of up to {show} results
                 </div>
               )}
             </CommandList>
