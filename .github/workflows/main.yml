@@ -1,6 +1,6 @@
 name: pnpm Example Workflow
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   build:
