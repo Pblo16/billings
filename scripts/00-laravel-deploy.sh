@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-echo "Verifying frontend assets directory..."
-if [ ! -d /var/www/html/public/build/assets ]; then
-  echo "ERROR: Frontend assets directory not found! Did you run pnpm build in CI?"
-  exit 1
-fi
-
 echo "Running composer"
 composer install --no-dev --working-dir=/var/www/html
 
@@ -28,5 +22,11 @@ php artisan db:seed --force
 
 echo "Listing routes..."
 php artisan route:list 
+
+echo "Verifying frontend assets directory..."
+if [ ! -d /var/www/html/public/build/assets ]; then
+  echo "ERROR: Frontend assets directory not found! Did you run pnpm build in CI?"
+  exit 1
+fi
 
 echo "Deployment completed!"
