@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout'
 import { BreadcrumbItem } from '@/types'
 import React from 'react'
+import AppForm from './app-form'
 
 interface UpsertShellProps {
   title?: string
@@ -38,8 +39,10 @@ const UpsertShell = ({
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <h1>{computedTitle}</h1>
-      {children}
+      <AppForm>
+        <h1>{computedTitle}</h1>
+        {children}
+      </AppForm>
     </AppLayout>
   )
 }

@@ -152,6 +152,7 @@ export interface Departments {
 export interface DepartmentsForm {
     name: string;
 }
+
 export interface Post {
     id: number;
     name: string;
