@@ -49,6 +49,27 @@ export const getColumns = (
     header: 'Name',
   },
   {
+    accessorKey: 'colaborator',
+    header: 'Colaborator',
+    cell: ({ row }) => {
+      const colaborator = row.original.colaborator
+
+      // If colaborator is a User object (relationship loaded), show the name
+      if (typeof colaborator === 'object' && colaborator?.name) {
+        return <span>{colaborator.name}</span>
+      }
+
+      // If colaborator is just an ID or null/undefined, show appropriate message
+      return (
+        <span>{colaborator ? `ID: ${colaborator}` : 'No colaborator'}</span>
+      )
+    },
+  },
+  {
+    accessorKey: 'slug',
+    header: 'Slug',
+  },
+  {
     id: 'actions',
     cell: ({ row }) => {
       const item = row.original

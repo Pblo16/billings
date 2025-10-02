@@ -20,6 +20,7 @@ interface GetColumnsOptions {
         canEdit?: boolean
         canDelete?: boolean
     }
+    sortable?: boolean
 }
 
 export interface PaginatedResponse<T> {
@@ -162,6 +163,8 @@ export interface Posts {
     slug: string;
     text?: string;
     user_id: number;
+    colaborator?: number | User; // Can be ID or User object when relationship is loaded
+    user?: User;
     created_at?: string;
     updated_at?: string;
 }
@@ -171,4 +174,5 @@ export interface PostsForm {
     slug: string;
     text?: string;
     user_id: number;
+    colaborator?: number;
 }

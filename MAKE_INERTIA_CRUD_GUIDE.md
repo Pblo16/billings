@@ -17,20 +17,20 @@ Puedes elegir qué componentes generar:
 - ✅ **Routes**: Rutas en `web.php`
 - ✅ **All**: Todos los componentes
 
-### 2. Actualización de Migraciones Existentes
+### 2. Agregar Campos a Modelos Existentes
 
-**Nueva funcionalidad**: Si la migración ya existe, puedes agregar nuevos campos sin recrearla.
+**Nueva funcionalidad**: Si la migración ya existe, crea una **nueva migración** para agregar los campos adicionales.
 
-#### Flujo de Actualización:
+#### Flujo de Agregar Columnas:
 
 1. El comando detecta si la migración existe
-2. Te pregunta si deseas agregar nuevos campos
+2. Te pregunta si deseas crear una nueva migración para agregar campos
 3. Si aceptas, defines los nuevos campos
-4. Actualiza automáticamente:
-   - ✅ Migración (agrega los campos nuevos)
+4. Crea y actualiza automáticamente:
+   - ✅ **Nueva migración** tipo `add_*_to_*_table` (¡no modifica la existente!)
    - ✅ Modelo `$fillable` (agrega los campos sin duplicar)
    - ✅ Tipos TypeScript (actualiza interfaces existentes)
-   - ✅ Controlador (opcional, pregunta antes de actualizar)
+   - ✅ Controlador (agrega validaciones sin borrar las existentes)
    - ✅ Vistas React (opcional, pregunta antes de actualizar)
 
 ### 3. Campos Solo Cuando se Necesitan
@@ -69,10 +69,10 @@ sail artisan make:inertia Post
 
 1. Selecciona "Migration"
 2. El comando detecta que la migración ya existe
-3. Pregunta: "Do you want to add new fields to the existing migration?"
+3. Pregunta: "Do you want to create a new migration to add fields?"
 4. Define los nuevos campos (ej: `author`, `tags`)
-5. Actualiza:
-   - Migración (agrega los campos)
+5. Crea y actualiza:
+   - **Nueva migración** `add_author_and_tags_to_posts_table.php`
    - Modelo (actualiza `$fillable`)
    - Tipos TypeScript (actualiza las interfaces)
 6. Opcionalmente actualiza controlador y vistas
@@ -126,11 +126,12 @@ routes/web.php (ruta agregada)
 ### Ahora:
 
 - ✅ Detecta migraciones existentes
-- ✅ Permite agregar campos sin recrear archivos
+- ✅ Crea **nueva migración** para agregar campos (no modifica la existente)
 - ✅ Solo pide campos cuando es necesario
 - ✅ Actualiza automáticamente todos los archivos relacionados
 - ✅ Previene duplicación de campos en `$fillable`
 - ✅ Mantiene la coherencia entre backend y frontend
+- ✅ Sigue las mejores prácticas de Laravel (una migración por cambio)
 
 ## 🎨 Ejemplo Completo: Agregar Campos a Post
 
@@ -158,10 +159,10 @@ What would you like to generate?
 → Migration
 
 Migration for Post already exists!
-Do you want to add new fields to the existing migration? (yes/no) [yes]:
+Do you want to create a new migration to add fields? (yes/no) [yes]:
 → yes
 
-You will add new fields to the existing migration.
+A new migration will be created to add columns to the table.
 
 Field name: author
 Select data type for 'author': string
@@ -179,15 +180,24 @@ Field name: (Press Ctrl+C to finish)
 
 ### Resultado
 
-**Migración actualizada:**
+**Nueva migración creada:**
+`database/migrations/2025_10_02_143952_add_author_and_published_at_to_posts_table.php`
 
 ```php
-$table->id();
-$table->string('title');
-$table->text('content');
-$table->string('author');  // ← Nuevo
-$table->datetime('published_at')->nullable();  // ← Nuevo
-$table->timestamps();
+public function up(): void
+{
+    Schema::table('posts', function (Blueprint $table) {
+        $table->string('author');
+        $table->datetime('published_at')->nullable();
+    });
+}
+
+public function down(): void
+{
+    Schema::table('posts', function (Blueprint $table) {
+        $table->dropColumn(['author', 'published_at']);
+    });
+}
 ```
 
 **Modelo actualizado:**
@@ -222,6 +232,13 @@ export interface Post {
 - Busca archivos que coincidan con: `*_create_{model}s_table.php`
 - Usa el último archivo encontrado (por timestamp)
 
+### Creación de Migración de Agregar Columnas
+
+- Crea nueva migración con formato: `add_{field1}_and_{field2}_to_{table}_table`
+- Usa el flag `--table` para indicar que es una modificación de tabla
+- Genera automáticamente el método `up()` con los nuevos campos
+- Genera automáticamente el método `down()` con `dropColumn` para rollback
+
 ### Actualización de $fillable
 
 - Detecta el array existente con regex
@@ -236,7 +253,7 @@ export interface Post {
 
 ### Preguntas Opcionales
 
-Cuando actualizas una migración y los archivos ya existen:
+Cuando agregas columnas y los archivos ya existen:
 
 - ✅ Pregunta si quieres actualizar el **controlador**
 - ✅ Pregunta si quieres actualizar las **vistas React**
@@ -244,10 +261,12 @@ Cuando actualizas una migración y los archivos ya existen:
 
 ## 📚 Mejores Prácticas
 
-1. **Agregar campos**: Usa el modo de actualización en lugar de editar manualmente
-2. **Mantén coherencia**: El comando actualiza todos los archivos relacionados
-3. **Revisa cambios**: Antes de migrar, revisa los archivos generados
-4. **Backup**: Considera hacer commit antes de actualizar archivos existentes
+1. **Agregar campos**: Usa este comando para crear migraciones de agregar columnas
+2. **No modifiques migraciones existentes**: El comando crea nuevas migraciones (patrón correcto)
+3. **Mantén coherencia**: El comando actualiza todos los archivos relacionados
+4. **Revisa cambios**: Antes de migrar, revisa los archivos generados
+5. **Versionado**: Cada migración queda registrada para despliegues incrementales
+6. **Backup**: Considera hacer commit antes de actualizar archivos existentes
 
 ## 🔄 Migración Automática
 

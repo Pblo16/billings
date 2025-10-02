@@ -16,6 +16,7 @@ const baseFormSchema = z.object({
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
   user_id: z.number(),
+  colaborator: z.number().optional(),
 })
 
 const createFormSchema = z.object({
@@ -23,6 +24,7 @@ const createFormSchema = z.object({
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
   user_id: z.number(),
+  colaborator: z.number().optional(),
 })
 
 export type PostsFormData = z.infer<typeof baseFormSchema>
@@ -83,6 +85,22 @@ const formFieldsConfig: FormFieldConfig[] = [
     searchUrl: paginated().url,
     show: 5, // Mostrar 10 resultados en la búsqueda
   },
+
+  {
+    name: 'colaborator',
+    label: 'Colaborator',
+    type: 'select',
+    placeholder: {
+      create: 'Search user...',
+      edit: 'Search user...',
+    },
+    description: {
+      create: 'Search and select a user.',
+      edit: 'Search and select a user.',
+    },
+    searchUrl: paginated().url,
+    show: 5, // Mostrar 10 resultados en la búsqueda
+  },
 ]
 
 interface PostsFormProps {
@@ -108,6 +126,7 @@ const PostsForm = ({
       slug: data?.slug || crypto.randomUUID(),
       text: data?.text || '',
       user_id: data?.user_id || auth.user.id,
+      colaborator: data?.colaborator || undefined,
     },
   })
 

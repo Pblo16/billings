@@ -38,7 +38,8 @@ class PostsController extends Controller
       'name' => 'required|string|max:255',
       'slug' => 'required|string|max:255|unique:posts',
       'text' => 'nullable|string',
-      'user_id' => 'required|integer'
+      'user_id' => 'required|integer',
+      'colaborator' => 'nullable|integer'
     ]);
     Posts::create($validated);
 
@@ -74,7 +75,8 @@ class PostsController extends Controller
       'name' => 'required|string|max:255',
       'slug' => 'required|string|max:255|unique:posts',
       'text' => 'nullable|string',
-      'user_id' => 'required|integer'
+      'user_id' => 'required|integer',
+      'colaborator' => 'nullable|integer'
     ]);
     $data = Posts::findOrFail($id);
     $data->update($validated);
@@ -104,6 +106,9 @@ class PostsController extends Controller
   {
     $query = Posts::query();
 
+    // Include colaborator relationship
+    $query->with(['colaborator:id,name', 'user:id,name']);
+
     // Apply search filter if provided
     if ($search = $request->input('search')) {
       $query->where('name', 'like', "%{$search}%")
@@ -116,13 +121,13 @@ class PostsController extends Controller
       $query->orderBy($sortBy, $sortDirection);
     } else {
       // Default sorting
-      $query->orderBy('id', 'desc');
+      $query->orderBy('id', 'asc');
     }
 
     // Paginate the results
     $perPage = $request->input('perPage', 10);
-    $roles = $query->paginate($perPage);
+    $posts = $query->paginate($perPage);
 
-    return response()->json($roles);
+    return response()->json($posts);
   }
 }

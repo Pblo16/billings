@@ -137,6 +137,13 @@ class UsersController extends Controller
             $query->orderBy('id', 'asc');
         }
 
+        if ($request->input('posts') === 'all') {
+            $query->with('posts', 'colaboratedPosts');
+        }
+        if ($request->input('colaborator') === 'all') {
+            $query->with('colaboratedPosts');
+        }
+
         // Paginate the results for table
         $perPage = $request->input('perPage', 10);
         $users = $query->paginate($perPage);

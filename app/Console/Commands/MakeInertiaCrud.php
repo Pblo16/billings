@@ -74,7 +74,7 @@ class MakeInertiaCrud extends Command
 
         // Solicitar campos SOLO si se va a crear o modificar la migración
         $fields = [];
-        $isUpdatingMigration = false;
+        $isAddingColumns = false;
         if (in_array('migration', $components)) {
             // Verificar si la migración ya existe
             $existingMigration = $migrationUpdater->findMigration($config['model']);
@@ -82,54 +82,71 @@ class MakeInertiaCrud extends Command
             if ($existingMigration) {
                 $this->newLine();
                 info("Migration for {$config['model']} already exists!");
-                $isUpdatingMigration = confirm(
-                    label: 'Do you want to add new fields to the existing migration?',
+                $isAddingColumns = confirm(
+                    label: 'Do you want to create a new migration to add fields?',
                     default: true
                 );
 
-                if ($isUpdatingMigration) {
-                    note('You will add new fields to the existing migration.');
+                if ($isAddingColumns) {
+                    note('A new migration will be created to add columns to the table.');
                     $this->newLine();
                     $fields = $fieldManager->askForFields();
                 }
             } else {
-                // Nueva migración
+                // Nueva migración (crear tabla)
                 $fields = $fieldManager->askForFields();
             }
         }
 
         // Crear modelo + migración
         if (in_array('model', $components)) {
-            $migrationOption = in_array('migration', $components) && !$isUpdatingMigration ? ['-m' => true] : [];
+            $migrationOption = in_array('migration', $components) && !$isAddingColumns ? ['-m' => true] : [];
             $this->call('make:model', array_merge(['name' => $config['modelWithPath']], $migrationOption));
-        } elseif (in_array('migration', $components) && !$isUpdatingMigration) {
+        } elseif (in_array('migration', $components) && !$isAddingColumns) {
             // Solo crear migración sin modelo (si no existe)
             $this->call('make:migration', ['name' => 'create_' . strtolower($config['model']) . 's_table']);
+        }
+
+        // Si estamos agregando columnas, crear migración tipo "add_columns"
+        if ($isAddingColumns && !empty($fields)) {
+            $tableName = \Illuminate\Support\Str::snake(\Illuminate\Support\Str::plural($config['model']));
+            $fieldNames = implode('_and_', array_map(fn($f) => $f['name'], array_slice($fields, 0, 3)));
+            if (count($fields) > 3) {
+                $fieldNames .= '_etc';
+            }
+            $migrationName = "add_{$fieldNames}_to_{$tableName}_table";
+            $this->call('make:migration', ['name' => $migrationName, '--table' => $tableName]);
         }
 
         // Modificar archivos si hay campos
         if (! empty($fields)) {
             // Actualizar migración
-            if (in_array('migration', $components)) {
-                $migrationUpdater->updateMigration($config['model'], $fields);
+            if (in_array('migration', $components) || $isAddingColumns) {
+                if ($isAddingColumns) {
+                    // Para migración de agregar columnas, usar un método diferente
+                    $migrationUpdater->updateAddColumnsMigration($config['model'], $fields);
+                } else {
+                    // Para migración de crear tabla
+                    $migrationUpdater->updateMigration($config['model'], $fields);
+                }
             }
 
             // Actualizar modelo con fillable (ya sea nuevo o existente)
-            if (in_array('model', $components) || $isUpdatingMigration) {
-                $migrationUpdater->updateModelFillable($config['model'], $config['parentPath'], $fields, $isUpdatingMigration);
+            if (in_array('model', $components) || $isAddingColumns) {
+                $migrationUpdater->updateModelFillable($config['model'], $config['parentPath'], $fields, $isAddingColumns);
             }
 
             // Actualizar tipos TypeScript (ya sea nuevo o agregar campos)
-            if (in_array('views', $components) || $isUpdatingMigration) {
-                $migrationUpdater->addTypesToIndexFile($config['name'], $fields, $isUpdatingMigration);
+            if (in_array('views', $components) || $isAddingColumns) {
+                $migrationUpdater->addTypesToIndexFile($config['name'], $fields, $isAddingColumns);
             }
         }
 
-        // Crear controlador (solo si se solicita o si se está actualizando con campos)
+        // Crear controlador (solo si se solicita o si se están agregando columnas)
         if (in_array('controller', $components)) {
             $controllerGenerator->createController($config, $fields);
-        } elseif ($isUpdatingMigration && !empty($fields)) {
-            // Si estamos actualizando la migración, preguntar si desea actualizar el controlador
+        } elseif ($isAddingColumns && !empty($fields)) {
+            // Si estamos agregando columnas, preguntar si desea actualizar el controlador
             if (file_exists(app_path("Http/Controllers/{$config['controllerPath']}/{$config['controller']}.php"))) {
                 $this->newLine();
                 if (confirm('Do you want to update the existing controller with new fields?', true)) {
@@ -138,11 +155,11 @@ class MakeInertiaCrud extends Command
             }
         }
 
-        // Generar archivos React (solo si se solicita o si se está actualizando con campos)
+        // Generar archivos React (solo si se solicita o si se están agregando columnas)
         if (in_array('views', $components)) {
             $reactFileGenerator->generateReactFiles($config, $fields);
-        } elseif ($isUpdatingMigration && !empty($fields)) {
-            // Si estamos actualizando la migración, preguntar si desea actualizar las vistas
+        } elseif ($isAddingColumns && !empty($fields)) {
+            // Si estamos agregando columnas, preguntar si desea actualizar las vistas
             $indexPagePath = resource_path("js/pages/{$config['frontendPath']}/Index.tsx");
             if (file_exists($indexPagePath)) {
                 $this->newLine();
@@ -161,8 +178,8 @@ class MakeInertiaCrud extends Command
         $generated = [];
         $updated = [];
 
-        if ($isUpdatingMigration) {
-            $updated[] = 'Migration (new fields added)';
+        if ($isAddingColumns) {
+            $generated[] = 'Migration (add columns)';
             if (!empty($fields)) {
                 $updated[] = 'Model $fillable';
                 $updated[] = 'TypeScript types';
@@ -186,7 +203,7 @@ class MakeInertiaCrud extends Command
         }
 
         // Ejecutar migraciones
-        if (in_array('migration', $components) || $isUpdatingMigration) {
+        if (in_array('migration', $components) || $isAddingColumns) {
             $this->newLine();
             $this->call('migrate');
         }

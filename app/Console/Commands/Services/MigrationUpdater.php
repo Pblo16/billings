@@ -23,6 +23,31 @@ class MigrationUpdater
         return empty($files) ? null : end($files);
     }
 
+    /**
+     * Generate field code for migration
+     */
+    private function generateFieldCode(array $field, int $indent = 12): string
+    {
+        $line = "\$table->{$field['type']}('{$field['name']}')";
+
+        // Agregar nullable ANTES de los constraints (importante para foreignId con set null)
+        if ($field['nullable']) {
+            $line .= '->nullable()';
+        }
+
+        // Para foreignId, agregar constraints DESPUÉS de nullable
+        if ($field['type'] === 'foreignId' && isset($field['references'])) {
+            $line .= "->constrained('{$field['references']}')";
+
+            if (isset($field['on_delete'])) {
+                $onDelete = $field['on_delete'];
+                $line .= "->onDelete('{$onDelete}')";
+            }
+        }
+
+        $line .= ';';
+        return str_repeat(' ', $indent) . $line . "\n";
+    }
     public function updateMigration(string $model, array $fields): void
     {
         // Buscar el archivo de migración más reciente
@@ -38,14 +63,7 @@ class MigrationUpdater
         // Generar código de campos
         $fieldsCode = '';
         foreach ($fields as $field) {
-            $line = "\$table->{$field['type']}('{$field['name']}')";
-
-            if ($field['nullable']) {
-                $line .= '->nullable()';
-            }
-
-            $line .= ';';
-            $fieldsCode .= str_repeat(' ', 12) . $line . "\n";
+            $fieldsCode .= $this->generateFieldCode($field);
         }
 
         // Buscar el lugar donde insertar los campos (después de $table->id())
@@ -57,6 +75,56 @@ class MigrationUpdater
         file_put_contents($migrationFile, $content);
 
         $this->command->info('✅ Migración actualizada con los campos definidos');
+    }
+
+    /**
+     * Update a migration file that adds columns to an existing table
+     */
+    public function updateAddColumnsMigration(string $model, array $fields): void
+    {
+        // Buscar la migración más reciente de tipo "add_*_to_*_table"
+        $migrationPath = database_path('migrations');
+        $modelBaseName = class_basename($model);
+        $tableName = Str::snake(Str::plural($modelBaseName));
+
+        // Buscar todas las migraciones que agregan columnas a esta tabla
+        $files = glob("{$migrationPath}/*_add_*_to_{$tableName}_table.php");
+
+        if (empty($files)) {
+            $this->command->error('❌ No se encontró la migración de agregar columnas');
+            return;
+        }
+
+        // Obtener la más reciente
+        $migrationFile = end($files);
+        $content = file_get_contents($migrationFile);
+
+        // Generar código de campos
+        $fieldsCode = '';
+        foreach ($fields as $field) {
+            $fieldsCode .= $this->generateFieldCode($field);
+        }
+
+        // Buscar el Schema::table y agregar los campos
+        $pattern = '/(Schema::table\([^,]+,\s*function\s*\([^)]+\)\s*\{)/';
+        $replacement = "$1\n{$fieldsCode}";
+
+        $content = preg_replace($pattern, $replacement, $content);
+
+        // También necesitamos agregar los dropColumn en el método down()
+        $dropFieldsCode = '';
+        $fieldNames = array_map(fn($field) => "'{$field['name']}'", $fields);
+        $dropFieldsCode = str_repeat(' ', 12) . '$table->dropColumn([' . implode(', ', $fieldNames) . ']);' . "\n";
+
+        // Buscar el segundo Schema::table (el del método down) y agregar dropColumn
+        $pattern = '/(public function down\(\): void\s*\{[^}]*Schema::table\([^,]+,\s*function\s*\([^)]+\)\s*\{)/s';
+        $replacement = "$1\n{$dropFieldsCode}";
+
+        $content = preg_replace($pattern, $replacement, $content);
+
+        file_put_contents($migrationFile, $content);
+
+        $this->command->info('✅ Migración de agregar columnas actualizada');
     }
 
     public function updateModelFillable(string $model, string $parentPath, array $fields, bool $isUpdating = false): void
