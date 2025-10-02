@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { data } from '@/routes/api/users'
 import { store } from '@/routes/global/post'
 import { FormFieldConfig, Post } from '@/types'
 
@@ -10,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { usePage } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+
 const baseFormSchema = z.object({
   name: z.string().min(2).max(255),
   slug: z.string().min(2).max(255),
@@ -82,7 +84,7 @@ const getFormFieldsConfig = (
       edit: 'Search and select a user.',
     },
     options: users, // Opciones iniciales (5 primeros)
-    searchUrl: '/global/post/search-users', // URL para búsqueda dinámica
+    searchUrl: data().url, // URL para búsqueda dinámica
     onEditReadOnly: true,
     colspan: 3,
   },

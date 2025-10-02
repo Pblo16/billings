@@ -26,8 +26,14 @@ function getInitials(nameOrEmail: string | null | undefined) {
   return `${a ?? ''}${b ?? ''}`.toUpperCase() || base.slice(0, 2).toUpperCase()
 }
 
-// Actions cell component that can use hooks
-const UserActionsCell = ({ user }: { user: UserWithAvatar }) => {
+// Actions cell component that can use hooks - exported for use in Index
+export const UserActionsCell = ({
+  user,
+  onDelete,
+}: {
+  user: UserWithAvatar
+  onDelete?: () => void
+}) => {
   const [openDialog, setOpenDialog] = useState(false)
   const [openMenu, setOpenMenu] = useState(false)
   const [query, setQuery] = useState(null as string | null)
@@ -61,7 +67,12 @@ const UserActionsCell = ({ user }: { user: UserWithAvatar }) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AppActionAlert query={query} open={openDialog} setOpen={setOpenDialog} />
+      <AppActionAlert
+        query={query}
+        open={openDialog}
+        setOpen={setOpenDialog}
+        onSuccess={onDelete}
+      />
     </>
   )
 }

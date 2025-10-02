@@ -19,29 +19,6 @@ import {
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
-const frameworks = [
-  {
-    value: 'next.js',
-    label: 'Next.js',
-  },
-  {
-    value: 'sveltekit',
-    label: 'SvelteKit',
-  },
-  {
-    value: 'nuxt.js',
-    label: 'Nuxt.js',
-  },
-  {
-    value: 'remix',
-    label: 'Remix',
-  },
-  {
-    value: 'astro',
-    label: 'Astro',
-  },
-]
-
 interface ComboboxProps {
   options: { value: string; label: string }[]
   value?: string | number
@@ -59,7 +36,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
-  options = options ? options : frameworks
+  options = options
 
   // Convertir el valor externo a string para la comparación
   // Permitir 0 como valor válido, solo rechazar undefined/null

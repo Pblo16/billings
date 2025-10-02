@@ -14,10 +14,21 @@ interface AppActionAlertProps {
   query: string | null
   open: boolean
   setOpen: (open: boolean) => void
+  onSuccess?: () => void
 }
-const AppActionAlert = ({ query, open, setOpen }: AppActionAlertProps) => {
+const AppActionAlert = ({
+  query,
+  open,
+  setOpen,
+  onSuccess,
+}: AppActionAlertProps) => {
   const handleDelete = (query: string) => {
-    router.delete(query)
+    router.delete(query, {
+      preserveScroll: true,
+      onSuccess: () => {
+        onSuccess?.()
+      },
+    })
   }
 
   return (

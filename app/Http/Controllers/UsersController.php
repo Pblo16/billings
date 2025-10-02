@@ -14,9 +14,7 @@ class UsersController extends Controller
     public function index()
     {
         //
-        return Inertia::render('users/Index', [
-            'data' => User::all(),
-        ]);
+        return Inertia::render('users/Index');
     }
 
     /**
@@ -95,17 +93,40 @@ class UsersController extends Controller
         try {
             $user->delete();
 
-            return redirect()->route('users')->with('success', 'User deleted successfully');
+            return back()->with('success', 'User deleted successfully');
         } catch (\Exception $e) {
-            // Log the exception or handle it as needed
-            return redirect()->route('users')->with('error', 'Failed to delete user: '.$e->getMessage());
+            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
     }
 
-    public function data(Request $request)
+    public function paginatedUsers(Request $request)
     {
-        $query = User::query()->select('id', 'name', 'email', 'created_at')->paginate($request->get('perPage', 10));
+        $perPage = $request->get('perPage', 10);
+        $query = User::query()->select('id', 'name', 'email', 'created_at')->paginate($perPage);
 
         return response()->json($query);
+    }
+    /**
+     * Search users with pagination for combobox
+     */
+    public function searchUsers(Request $request)
+    {
+        $search = $request->input('search', '');
+        $perPage = $request->input('per_page', 10);
+
+        $users = \App\Models\User::query()
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->select('id', 'name')
+            ->limit($perPage)
+            ->get()
+            ->map(fn($user) => [
+                'value' => (string) $user->id,
+                'label' => $user->name,
+            ]);
+
+        return response()->json($users);
     }
 }
