@@ -15,7 +15,7 @@ class DepartmentsController extends Controller
     public function index()
     {
         return Inertia::render('control/departments/Index', [
-            'data' => Departments::all()
+            'data' => Departments::all(),
         ]);
     }
 
@@ -25,7 +25,7 @@ class DepartmentsController extends Controller
     public function create()
     {
         return Inertia::render('control/departments/Upsert', [
-            'data' => null
+            'data' => null,
         ]);
     }
 
@@ -56,9 +56,10 @@ class DepartmentsController extends Controller
     public function edit(string $id)
     {
         $data = Departments::findOrFail($id);
+
         return Inertia::render('control/departments/Upsert', [
             'data' => $data,
-            'mode' => 'edit'
+            'mode' => 'edit',
         ]);
     }
 
@@ -85,7 +86,7 @@ class DepartmentsController extends Controller
             $data = Departments::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
 
         return redirect()->route('control.departments')->with('success', 'Registro eliminado exitosamente.');

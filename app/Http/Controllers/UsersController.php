@@ -22,7 +22,6 @@ class UsersController extends Controller
     /**
      * Display the specified resource.
      */
-
     public function create()
     {
         return Inertia::render('users/Upsert');
@@ -48,7 +47,6 @@ class UsersController extends Controller
 
         return redirect()->route('users')->with('success', 'User created successfully');
     }
-
 
     /**
      * Show the form for editing the specified resource.
@@ -79,7 +77,7 @@ class UsersController extends Controller
         ];
 
         // Only update password if provided
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $updateData['password'] = bcrypt($validated['password']);
         }
 
@@ -96,16 +94,18 @@ class UsersController extends Controller
         //
         try {
             $user->delete();
+
             return redirect()->route('users')->with('success', 'User deleted successfully');
         } catch (\Exception $e) {
             // Log the exception or handle it as needed
-            return redirect()->route('users')->with('error', 'Failed to delete user: ' . $e->getMessage());
+            return redirect()->route('users')->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 
     public function data(Request $request)
     {
         $query = User::query()->select('id', 'name', 'email', 'created_at')->paginate($request->get('perPage', 10));
+
         return response()->json($query);
     }
 }

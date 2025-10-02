@@ -15,7 +15,7 @@ class ClientsController extends Controller
     public function index()
     {
         return Inertia::render('control/clients/Index', [
-            'data' => Clients::all()
+            'data' => Clients::all(),
         ]);
     }
 
@@ -25,7 +25,7 @@ class ClientsController extends Controller
     public function create()
     {
         return Inertia::render('control/clients/Upsert', [
-            'data' => null
+            'data' => null,
         ]);
     }
 
@@ -36,7 +36,7 @@ class ClientsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:clients',
-            'phone' => 'nullable|string|max:20|regex:/^[\d\s\-\+\(\)]+$/'
+            'phone' => 'nullable|string|max:20|regex:/^[\d\s\-\+\(\)]+$/',
         ]);
 
         Clients::create($validated);
@@ -58,9 +58,10 @@ class ClientsController extends Controller
     public function edit(string $id)
     {
         $data = Clients::findOrFail($id);
+
         return Inertia::render('control/clients/Upsert', [
             'data' => $data,
-            'mode' => 'edit'
+            'mode' => 'edit',
         ]);
     }
 
@@ -70,8 +71,8 @@ class ClientsController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:clients,name,' . $id,
-            'phone' => 'nullable|string|max:20|regex:/^[\d\s\-\+\(\)]+$/'
+            'name' => 'required|string|max:255|unique:clients,name,'.$id,
+            'phone' => 'nullable|string|max:20|regex:/^[\d\s\-\+\(\)]+$/',
         ]);
 
         $data = Clients::findOrFail($id);
@@ -89,7 +90,7 @@ class ClientsController extends Controller
             $data = Clients::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
 
         return redirect()->route('control.clients')->with('success', 'Registro eliminado exitosamente.');

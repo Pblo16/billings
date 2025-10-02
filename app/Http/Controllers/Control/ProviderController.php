@@ -15,7 +15,7 @@ class ProviderController extends Controller
     public function index()
     {
         return Inertia::render('control/providers/Index', [
-            'data' => Provider::all()
+            'data' => Provider::all(),
         ]);
     }
 
@@ -25,7 +25,7 @@ class ProviderController extends Controller
     public function create()
     {
         return Inertia::render('control/providers/Upsert', [
-            'data' => null
+            'data' => null,
         ]);
     }
 
@@ -37,11 +37,11 @@ class ProviderController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'average' => 'nullable|numeric'
+                'average' => 'nullable|numeric',
             ]);
             Provider::create($validated);
         } catch (\Exception $e) {
-            return redirect()->route('control.provider')->withErrors(['error' => 'Error al crear: ' . $e->getMessage()]);
+            return redirect()->route('control.provider')->withErrors(['error' => 'Error al crear: '.$e->getMessage()]);
         }
 
         return redirect()->route('control.provider')->with('success', 'Registro creado exitosamente.');
@@ -61,9 +61,10 @@ class ProviderController extends Controller
     public function edit(string $id)
     {
         $data = Provider::findOrFail($id);
+
         return Inertia::render('control/providers/Upsert', [
             'data' => $data,
-            'mode' => 'edit'
+            'mode' => 'edit',
         ]);
     }
 
@@ -75,14 +76,14 @@ class ProviderController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'average' => 'nullable|numeric'
+                'average' => 'nullable|numeric',
             ]);
             $data = Provider::findOrFail($id);
             $data->update($validated);
         } catch (\Exception $e) {
-            return redirect()->route('control.provider')->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
+            return redirect()->route('control.provider')->withErrors(['error' => 'Error al actualizar: '.$e->getMessage()]);
         }
-        
+
         return redirect()->route('control.provider')->with('success', 'Registro actualizado exitosamente.');
     }
 
@@ -95,7 +96,7 @@ class ProviderController extends Controller
             $data = Provider::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
 
         return redirect()->route('control.provider')->with('success', 'Registro eliminado exitosamente.');

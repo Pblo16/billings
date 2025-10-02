@@ -6,56 +6,57 @@ use Illuminate\Console\Command;
 
 class ControllerGenerator
 {
-  public function __construct(
-    private Command $command,
-    private FieldManager $fieldManager
-  ) {}
+    public function __construct(
+        private Command $command,
+        private FieldManager $fieldManager
+    ) {}
 
-  public function createController(array $config, array $fields): void
-  {
-    $controllerPath = ($config['parentPath'] !== '')
-      ? app_path("Http/Controllers/{$config['parentPath']}/{$config['controller']}.php")
-      : app_path("Http/Controllers/{$config['controller']}.php");
+    public function createController(array $config, array $fields): void
+    {
+        $controllerPath = ($config['parentPath'] !== '')
+          ? app_path("Http/Controllers/{$config['parentPath']}/{$config['controller']}.php")
+          : app_path("Http/Controllers/{$config['controller']}.php");
 
-    // Crear directorio si no existe
-    $controllerDir = dirname($controllerPath);
-    if (!is_dir($controllerDir)) {
-      mkdir($controllerDir, 0755, true);
+        // Crear directorio si no existe
+        $controllerDir = dirname($controllerPath);
+        if (! is_dir($controllerDir)) {
+            mkdir($controllerDir, 0755, true);
+        }
+
+        // Generar reglas de validación usando FieldManager
+        $validationRules = $this->fieldManager->generateValidationRules($fields);
+        $validationString = implode(",\n                ", $validationRules);
+
+        // Construir namespace con parent path
+        $controllerNamespace = ($config['parentPath'] !== '')
+          ? 'App\\Http\\Controllers\\'.str_replace('/', '\\', $config['parentPath'])
+          : 'App\\Http\\Controllers';
+
+        $modelNamespace = ($config['parentPath'] !== '')
+          ? 'App\\Models\\'.str_replace('/', '\\', $config['parentPath'])."\\{$config['model']}"
+          : "App\\Models\\{$config['model']}";
+
+        $controllerContent = $this->generateControllerTemplate(
+            $controllerNamespace,
+            $modelNamespace,
+            $config,
+            $validationString
+        );
+
+        file_put_contents($controllerPath, $controllerContent);
+
+        $this->command->info("✅ Controlador {$config['controller']} creado con validaciones personalizadas");
     }
 
-    // Generar reglas de validación usando FieldManager
-    $validationRules = $this->fieldManager->generateValidationRules($fields);
-    $validationString = implode(",\n                ", $validationRules);
+    private function generateControllerTemplate(
+        string $controllerNamespace,
+        string $modelNamespace,
+        array $config,
+        string $validationString
+    ): string {
+        $viewBase = ($config['parentPathLower'] ? $config['parentPathLower'].'/' : '').$config['pluralLower'];
 
-    // Construir namespace con parent path
-    $controllerNamespace = ($config['parentPath'] !== '')
-      ? "App\\Http\\Controllers\\" . str_replace('/', '\\', $config['parentPath'])
-      : "App\\Http\\Controllers";
-
-    $modelNamespace = ($config['parentPath'] !== '')
-      ? "App\\Models\\" . str_replace('/', '\\', $config['parentPath']) . "\\{$config['model']}"
-      : "App\\Models\\{$config['model']}";
-
-    $controllerContent = $this->generateControllerTemplate(
-      $controllerNamespace,
-      $modelNamespace,
-      $config,
-      $validationString
-    );
-
-    file_put_contents($controllerPath, $controllerContent);
-
-    $this->command->info("✅ Controlador {$config['controller']} creado con validaciones personalizadas");
-  }
-
-  private function generateControllerTemplate(
-    string $controllerNamespace,
-    string $modelNamespace,
-    array $config,
-    string $validationString
-  ): string {
-    $viewBase = ($config['parentPathLower'] ? $config['parentPathLower'] . '/' : '') . $config['pluralLower'];
-    return <<<PHP
+        return <<<PHP
 <?php
 
 namespace {$controllerNamespace};
@@ -150,5 +151,5 @@ class {$config['controller']} extends Controller
   }
 }
 PHP;
-  }
+    }
 }

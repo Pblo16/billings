@@ -7,100 +7,103 @@ use Illuminate\Support\Str;
 
 class MigrationUpdater
 {
-  public function __construct(
-    private Command $command
-  ) {}
+    public function __construct(
+        private Command $command
+    ) {}
 
-  public function updateMigration(string $model, array $fields): void
-  {
-    // Buscar el archivo de migración más reciente
-    $migrationPath = database_path('migrations');
-    $modelBaseName = class_basename($model);
-    $files = glob("{$migrationPath}/*_create_" . Str::snake(Str::plural($modelBaseName)) . "_table.php");
+    public function updateMigration(string $model, array $fields): void
+    {
+        // Buscar el archivo de migración más reciente
+        $migrationPath = database_path('migrations');
+        $modelBaseName = class_basename($model);
+        $files = glob("{$migrationPath}/*_create_".Str::snake(Str::plural($modelBaseName)).'_table.php');
 
-    if (empty($files)) {
-      $this->command->error('❌ No se encontró el archivo de migración');
-      return;
+        if (empty($files)) {
+            $this->command->error('❌ No se encontró el archivo de migración');
+
+            return;
+        }
+
+        $migrationFile = end($files);
+        $content = file_get_contents($migrationFile);
+
+        // Generar código de campos
+        $fieldsCode = '';
+        foreach ($fields as $field) {
+            $line = "\$table->{$field['type']}('{$field['name']}')";
+
+            if ($field['nullable']) {
+                $line .= '->nullable()';
+            }
+
+            $line .= ';';
+            $fieldsCode .= str_repeat(' ', 12).$line."\n";
+        }
+
+        // Buscar el lugar donde insertar los campos (después de $table->id())
+        $pattern = '/(\$table->id\(\);)/';
+        $replacement = "$1\n{$fieldsCode}";
+
+        $content = preg_replace($pattern, $replacement, $content);
+
+        file_put_contents($migrationFile, $content);
+
+        $this->command->info('✅ Migración actualizada con los campos definidos');
     }
 
-    $migrationFile = end($files);
-    $content = file_get_contents($migrationFile);
+    public function updateModelFillable(string $model, string $parentPath, array $fields): void
+    {
+        $modelPath = ($parentPath !== '')
+          ? app_path("Models/{$parentPath}/{$model}.php")
+          : app_path("Models/{$model}.php");
 
-    // Generar código de campos
-    $fieldsCode = '';
-    foreach ($fields as $field) {
-      $line = "\$table->{$field['type']}('{$field['name']}')";
+        if (! file_exists($modelPath)) {
+            $this->command->error("❌ No se encontró el modelo en {$modelPath}");
 
-      if ($field['nullable']) {
-        $line .= '->nullable()';
-      }
+            return;
+        }
 
-      $line .= ';';
-      $fieldsCode .= str_repeat(' ', 12) . $line . "\n";
+        $content = file_get_contents($modelPath);
+
+        // Generar array de campos fillable
+        $fillableFields = array_map(fn ($field) => "'{$field['name']}'", $fields);
+        $fillableString = "[\n        ".implode(",\n        ", $fillableFields).",\n    ]";
+
+        // Buscar el lugar donde insertar fillable (después de "class NombreModelo extends Model")
+        $modelBaseName = class_basename($model);
+        $pattern = '/(class\s+'.preg_quote($modelBaseName, '/').'\s+extends\s+Model\s*\{)/';
+        $fillableCode = "\n    protected \$fillable = {$fillableString};\n";
+
+        $content = preg_replace_callback($pattern, function ($matches) use ($fillableCode) {
+            return $matches[0].$fillableCode;
+        }, $content);
+
+        file_put_contents($modelPath, $content);
+
+        $this->command->info('✅ Modelo actualizado con $fillable');
     }
 
-    // Buscar el lugar donde insertar los campos (después de $table->id())
-    $pattern = '/(\$table->id\(\);)/';
-    $replacement = "$1\n{$fieldsCode}";
+    public function addTypesToIndexFile(string $name, array $fields): void
+    {
+        $indexFile = resource_path('js/types/index.d.ts');
 
-    $content = preg_replace($pattern, $replacement, $content);
+        if (! file_exists($indexFile)) {
+            $this->command->error('❌ No se encontró el archivo index.d.ts');
 
-    file_put_contents($migrationFile, $content);
+            return;
+        }
 
-    $this->command->info("✅ Migración actualizada con los campos definidos");
-  }
+        $content = file_get_contents($indexFile);
 
-  public function updateModelFillable(string $model, string $parentPath, array $fields): void
-  {
-    $modelPath = ($parentPath !== '')
-      ? app_path("Models/{$parentPath}/{$model}.php")
-      : app_path("Models/{$model}.php");
+        // Generar tipos TypeScript
+        $typeDefinitions = '';
+        foreach ($fields as $field) {
+            $tsType = $this->mapPhpTypeToTypeScript($field['type']);
+            $optional = $field['nullable'] ? '?' : '';
+            $typeDefinitions .= "    {$field['name']}{$optional}: {$tsType};\n";
+        }
 
-    if (!file_exists($modelPath)) {
-      $this->command->error("❌ No se encontró el modelo en {$modelPath}");
-      return;
-    }
-
-    $content = file_get_contents($modelPath);
-
-    // Generar array de campos fillable
-    $fillableFields = array_map(fn($field) => "'{$field['name']}'", $fields);
-    $fillableString = "[\n        " . implode(",\n        ", $fillableFields) . ",\n    ]";
-
-    // Buscar el lugar donde insertar fillable (después de "class NombreModelo extends Model")
-    $modelBaseName = class_basename($model);
-    $pattern = '/(class\s+' . preg_quote($modelBaseName, '/') . '\s+extends\s+Model\s*\{)/';
-    $fillableCode = "\n    protected \$fillable = {$fillableString};\n";
-
-    $content = preg_replace_callback($pattern, function ($matches) use ($fillableCode) {
-      return $matches[0] . $fillableCode;
-    }, $content);
-
-    file_put_contents($modelPath, $content);
-
-    $this->command->info("✅ Modelo actualizado con \$fillable");
-  }
-
-  public function addTypesToIndexFile(string $name, array $fields): void
-  {
-    $indexFile = resource_path('js/types/index.d.ts');
-
-    if (!file_exists($indexFile)) {
-      $this->command->error("❌ No se encontró el archivo index.d.ts");
-      return;
-    }
-
-    $content = file_get_contents($indexFile);
-
-    // Generar tipos TypeScript
-    $typeDefinitions = '';
-    foreach ($fields as $field) {
-      $tsType = $this->mapPhpTypeToTypeScript($field['type']);
-      $optional = $field['nullable'] ? '?' : '';
-      $typeDefinitions .= "    {$field['name']}{$optional}: {$tsType};\n";
-    }
-
-    $newTypes = <<<TS
+        $newTypes = <<<TS
 
 export interface {$name} {
     id: number;
@@ -112,22 +115,22 @@ export interface {$name}Form {
 {$typeDefinitions}}
 TS;
 
-    // Agregar los tipos al final del archivo
-    $content .= $newTypes;
+        // Agregar los tipos al final del archivo
+        $content .= $newTypes;
 
-    file_put_contents($indexFile, $content);
+        file_put_contents($indexFile, $content);
 
-    $this->command->info("✅ Tipos TypeScript agregados a index.d.ts");
-  }
+        $this->command->info('✅ Tipos TypeScript agregados a index.d.ts');
+    }
 
-  private function mapPhpTypeToTypeScript(string $phpType): string
-  {
-    return match ($phpType) {
-      'string', 'text', 'date', 'datetime', 'timestamp' => 'string',
-      'integer', 'bigInteger', 'decimal', 'float', 'foreignId' => 'number',
-      'boolean' => 'boolean',
-      'json' => 'any',
-      default => 'string',
-    };
-  }
+    private function mapPhpTypeToTypeScript(string $phpType): string
+    {
+        return match ($phpType) {
+            'string', 'text', 'date', 'datetime', 'timestamp' => 'string',
+            'integer', 'bigInteger', 'decimal', 'float', 'foreignId' => 'number',
+            'boolean' => 'boolean',
+            'json' => 'any',
+            default => 'string',
+        };
+    }
 }
