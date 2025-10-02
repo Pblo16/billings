@@ -102,4 +102,10 @@ class UsersController extends Controller
             return redirect()->route('users')->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
     }
+
+    public function data(Request $request)
+    {
+        $query = User::query()->select('id', 'name', 'email', 'created_at')->paginate($request->get('perPage', 10));
+        return response()->json($query);
+    }
 }

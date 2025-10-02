@@ -27,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'show' => 'users.show',
         'edit' => 'users.edit',
         'update' => 'users.update',
-        'destroy' => 'users.destroy'
+        'destroy' => 'users.destroy',
     ]);
 
     Route::resource('admin/security/role', RoleController::class)->names([

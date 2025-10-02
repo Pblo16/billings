@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Link } from '@inertiajs/react'
+import { useState } from 'react'
 import { Button } from './ui/button'
 
 // Define a custom type for header actions
@@ -42,10 +43,11 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
+  const [page, setPage] = useState(1)
 
   return (
-    <div className="rounded-md overflow-hidden">
-      <header className="flex justify-between items-center py-4 border-b">
+    <div className="flex flex-col justify-between p-12 border-2 rounded-md h-full">
+      <header className="flex justify-between items-center p-2 border-b">
         <h2 className="font-medium text-lg">Data Table</h2>
         {header && header.length > 0 && (
           <div className="flex gap-2">
@@ -57,7 +59,7 @@ export function DataTable<TData, TValue>({
           </div>
         )}
       </header>
-      <Table>
+      <Table className="flex-1 overflow-auto">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -76,7 +78,7 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className="">
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
@@ -99,6 +101,9 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
+      <footer className="p-2 border-t text-muted-foreground text-sm">
+        {table.getRowModel().rows.length} results.
+      </footer>
     </div>
   )
 }
