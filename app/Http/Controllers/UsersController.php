@@ -31,17 +31,20 @@ class UsersController extends Controller
     public function store(Request $request)
     {
         //
+        $roles = $request->input('roles', []);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
 
-        User::create([
+        $model = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
         ]);
+
+        $model->assignRole($roles);
 
         return redirect()->route('users')->with('success', 'User created successfully');
     }
@@ -51,6 +54,9 @@ class UsersController extends Controller
      */
     public function edit(User $user)
     {
+        // Load roles relationship for the user
+        $user->load('roles');
+
         return Inertia::render('users/Upsert', [
             'data' => $user,
             'mode' => 'edit',
@@ -63,6 +69,8 @@ class UsersController extends Controller
     public function update(Request $request, User $user)
     {
         //
+        $roles = $request->input('roles', []);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -80,7 +88,7 @@ class UsersController extends Controller
         }
 
         $user->update($updateData);
-
+        $user->syncRoles($roles);
         return redirect()->route('users')->with('success', "User {$user->id} updated successfully");
     }
 
@@ -95,7 +103,7 @@ class UsersController extends Controller
 
             return back()->with('success', 'User deleted successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
+            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
     }
 
@@ -117,15 +125,15 @@ class UsersController extends Controller
         // Handle combobox format request
         if ($request->input('format') === 'combobox') {
             $perPage = $request->input('per_page', 10);
-            $users = $query->select('id', 'name')
+            $data = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn ($user) => [
-                    'value' => (string) $user->id,
-                    'label' => $user->name,
+                ->map(fn($item) => [
+                    'value' => (string) $item->id,
+                    'label' => $item->name,
                 ]);
 
-            return response()->json($users);
+            return response()->json($data);
         }
 
         // Default table format - apply sorting if provided
@@ -146,8 +154,8 @@ class UsersController extends Controller
 
         // Paginate the results for table
         $perPage = $request->input('perPage', 10);
-        $users = $query->paginate($perPage);
+        $data = $query->paginate($perPage);
 
-        return response()->json($users);
+        return response()->json($data);
     }
 }

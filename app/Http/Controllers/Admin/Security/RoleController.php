@@ -32,11 +32,16 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
+        $permissions = $request->input('permissions', []);
+        $guard_name = $request->input('guard_name', 'web'); // Default to 'web' if not provided
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'guard_name' => 'required|string|max:255',
         ]);
-        Role::create($validated);
+        $validated['guard_name'] = $guard_name;
+
+        $role = Role::create($validated);
+        $role->permissions()->sync($permissions);
+
 
         return redirect()->route('admin.security.role')->with('success', 'Registro creado exitosamente.');
     }
@@ -54,7 +59,10 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
-        $data = Role::findOrFail($id);
+        $data = Role::with('permissions')->findOrFail($id);
+
+        // Add permissions array to the data
+        $data->permissions_ids = $data->permissions->pluck('id')->toArray();
 
         return Inertia::render('admin/security/roles/Upsert', [
             'data' => $data,
@@ -67,12 +75,16 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $permissions = $request->input('permissions', []);
+        $guard_name = $request->input('guard_name', 'web'); // Default to 'web' if not provided
+        $validated['guard_name'] = $guard_name;
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'guard_name' => 'required|string|max:255',
         ]);
         $data = Role::findOrFail($id);
         $data->update($validated);
+        $data->permissions()->sync($permissions);
 
         return redirect()->route('admin.security.role')->with('success', 'Registro actualizado exitosamente.');
     }
@@ -86,7 +98,7 @@ class RoleController extends Controller
             $data = Role::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
         }
 
         return redirect()->route('admin.security.role')->with('success', 'Registro eliminado exitosamente.');
@@ -96,25 +108,49 @@ class RoleController extends Controller
     {
         $query = Role::query();
 
-        // Apply search filter if provided
-        if ($search = $request->input('search')) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('guard_name', 'like', "%{$search}%");
+        // Handle ID-specific search (for combobox selected value retrieval)
+        if ($id = $request->input('id')) {
+            $query->where('id', $id);
         }
 
-        // Apply sorting if provided
+        // Handle multiple IDs search (for multi-select combobox)
+        if ($ids = $request->input('ids')) {
+            $idsArray = is_array($ids) ? $ids : explode(',', $ids);
+            $query->whereIn('id', $idsArray);
+        }
+
+        // Apply search filter if provided
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        // Handle combobox format request
+        if ($request->input('format') === 'combobox') {
+            $perPage = $request->input('per_page', 10);
+            $data = $query->select('id', 'name')
+                ->limit($perPage)
+                ->get()
+                ->map(fn($item) => [
+                    'value' => (string) $item->id,
+                    'label' => $item->name,
+                ]);
+
+            return response()->json($data);
+        }
+
+        // Default table format - apply sorting if provided
         if ($sortBy = $request->input('sortBy')) {
             $sortDirection = $request->input('sortDirection', 'asc');
             $query->orderBy($sortBy, $sortDirection);
         } else {
             // Default sorting
-            $query->orderBy('id', 'desc');
+            $query->orderBy('id', 'asc');
         }
 
-        // Paginate the results
+        // Paginate the results for table
         $perPage = $request->input('perPage', 10);
-        $roles = $query->paginate($perPage);
+        $data = $query->paginate($perPage);
 
-        return response()->json($roles);
+        return response()->json($data);
     }
 }

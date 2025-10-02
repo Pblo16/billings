@@ -11,5 +11,6 @@ Route::middleware(['auth:sanctum', 'web'])->group(
         Route::get('/users/paginated', [UsersController::class, 'paginatedUsers'])->name('api.users.paginated');
         Route::get('/global/posts/paginated', [PostsController::class, 'paginated'])->name('api.global.posts.paginated');
         Route::get('/security/roles/paginated', [RoleController::class, 'paginated'])->name('api.security.roles.paginated');
+        Route::get('/security/permissions', [\App\Http\Controllers\Admin\Security\Permissions::class, 'index'])->name('api.security.permissions');
     }
 );

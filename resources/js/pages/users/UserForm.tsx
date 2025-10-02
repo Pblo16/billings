@@ -3,25 +3,40 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
+import { paginated as rolesApi } from '@/routes/api/security/roles'
 import { store } from '@/routes/users'
-import { FormFieldConfig, UserWithAvatar } from '@/types'
+import { FormFieldConfig, UserFormData, UserWithAvatar } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const baseFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  email: z.email(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be at most 50 characters'),
+  email: z.string().email('Please enter a valid email address'),
   password: z.string().optional(),
+  roles: z
+    .array(
+      z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
+    )
+    .optional(),
 })
 
 const createFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  email: z.email(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be at most 50 characters'),
+  email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  roles: z
+    .array(
+      z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
+    )
+    .optional(),
 })
-
-export type UserFormData = z.infer<typeof baseFormSchema>
 
 const formFieldsConfig: FormFieldConfig[] = [
   {
@@ -64,6 +79,22 @@ const formFieldsConfig: FormFieldConfig[] = [
     },
     optional: true,
   },
+  {
+    name: 'roles',
+    label: 'Roles',
+    type: 'multi-select',
+    placeholder: {
+      create: 'Select roles',
+      edit: 'Select roles',
+    },
+    description: {
+      create: 'Assign roles to the user.',
+      edit: 'Modify the user roles as needed.',
+    },
+    optional: true,
+    searchUrl: rolesApi({ query: { format: 'combobox' } }).url,
+    show: 5,
+  },
 ]
 
 interface UserFormProps {
@@ -87,10 +118,11 @@ const UserForm = ({
       name: data?.name || '',
       email: data?.email || '',
       password: data?.password || '',
+      roles: data?.roles?.map((role) => role.id) || undefined,
     },
   })
 
-  const { handleSubmit } = useFormSubmit<UserFormData>({
+  const { handleSubmit } = useFormSubmit({
     onSubmit,
     isEdit,
     entityId: data?.id,

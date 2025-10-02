@@ -91,7 +91,8 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
-    password: string | null;
+    password?: string | null;
+    roles?: Role[]; // Spatie roles relationship
     [key: string]: unknown; // This allows for additional properties...
 }
 
@@ -102,10 +103,18 @@ export interface UserMethods extends User {
 // Helper type for UI components that include an avatar property
 export type UserWithAvatar = User & { avatar?: string | null };
 
+// Form data for creating/updating users
+export interface UserFormData extends Record<string, unknown> {
+    name: string;
+    email: string;
+    password?: string;
+    roles?: (number | string)[]; // Array of role IDs (can be string or number from API)
+}
+
 export interface FormFieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select';
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select' | 'multi-select';
     placeholder: {
         create: string;
         edit: string;
@@ -148,6 +157,7 @@ export interface Role {
     id: number;
     name: string;
     guard_name: string;
+    permissions_ids?: number[];
     created_at?: string;
     updated_at?: string;
 }
@@ -163,7 +173,7 @@ export interface Posts {
     slug: string;
     text?: string;
     user_id: number;
-    colaborator?: number | User; // Can be ID or User object when relationship is loaded
+    colaborator?: number; // Can be ID or User object when relationship is loaded
     user?: User;
     created_at?: string;
     updated_at?: string;
@@ -175,4 +185,22 @@ export interface PostsForm {
     text?: string;
     user_id: number;
     colaborator?: number;
+}
+
+export interface Permission {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PermissionForm {
+    name: string;
+    guard_name: string;
+}
+
+export interface PermissionGroup {
+    category: string;
+    permissions: Permission[];
 }

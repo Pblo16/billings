@@ -168,7 +168,7 @@ export function NavMain({ data }: { data: NavMainProps }) {
             className="flex items-center gap-2 cursor-pointer"
             prefetch
           >
-            {item.icon && <item.icon className="size-4" className="size-1" />}
+            {item.icon && <item.icon className="size-4" />}
             {item.title}
           </Link>
         </DropdownMenuItem>
