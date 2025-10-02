@@ -18,7 +18,7 @@ class MigrationUpdater
     {
         $migrationPath = database_path('migrations');
         $modelBaseName = class_basename($model);
-        $files = glob("{$migrationPath}/*_create_" . Str::snake(Str::plural($modelBaseName)) . '_table.php');
+        $files = glob("{$migrationPath}/*_create_".Str::snake(Str::plural($modelBaseName)).'_table.php');
 
         return empty($files) ? null : end($files);
     }
@@ -46,8 +46,10 @@ class MigrationUpdater
         }
 
         $line .= ';';
-        return str_repeat(' ', $indent) . $line . "\n";
+
+        return str_repeat(' ', $indent).$line."\n";
     }
+
     public function updateMigration(string $model, array $fields): void
     {
         // Buscar el archivo de migración más reciente
@@ -92,6 +94,7 @@ class MigrationUpdater
 
         if (empty($files)) {
             $this->command->error('❌ No se encontró la migración de agregar columnas');
+
             return;
         }
 
@@ -113,8 +116,8 @@ class MigrationUpdater
 
         // También necesitamos agregar los dropColumn en el método down()
         $dropFieldsCode = '';
-        $fieldNames = array_map(fn($field) => "'{$field['name']}'", $fields);
-        $dropFieldsCode = str_repeat(' ', 12) . '$table->dropColumn([' . implode(', ', $fieldNames) . ']);' . "\n";
+        $fieldNames = array_map(fn ($field) => "'{$field['name']}'", $fields);
+        $dropFieldsCode = str_repeat(' ', 12).'$table->dropColumn(['.implode(', ', $fieldNames).']);'."\n";
 
         // Buscar el segundo Schema::table (el del método down) y agregar dropColumn
         $pattern = '/(public function down\(\): void\s*\{[^}]*Schema::table\([^,]+,\s*function\s*\([^)]+\)\s*\{)/s';
@@ -142,7 +145,7 @@ class MigrationUpdater
         $content = file_get_contents($modelPath);
 
         // Generar array de campos fillable
-        $fillableFields = array_map(fn($field) => "'{$field['name']}'", $fields);
+        $fillableFields = array_map(fn ($field) => "'{$field['name']}'", $fields);
 
         if ($isUpdating && preg_match('/protected\s+\$fillable\s*=\s*\[(.*?)\];/s', $content, $matches)) {
             // Actualizar fillable existente
@@ -153,7 +156,7 @@ class MigrationUpdater
             $newFields = array_merge($existingFields, $fillableFields);
             $newFields = array_unique(array_filter($newFields));
 
-            $fillableString = "[\n        " . implode(",\n        ", $newFields) . ",\n    ]";
+            $fillableString = "[\n        ".implode(",\n        ", $newFields).",\n    ]";
             $content = preg_replace(
                 '/protected\s+\$fillable\s*=\s*\[.*?\];/s',
                 "protected \$fillable = {$fillableString};",
@@ -163,15 +166,15 @@ class MigrationUpdater
             $this->command->info('✅ Modelo actualizado: nuevos campos agregados a $fillable');
         } else {
             // Crear fillable nuevo
-            $fillableString = "[\n        " . implode(",\n        ", $fillableFields) . ",\n    ]";
+            $fillableString = "[\n        ".implode(",\n        ", $fillableFields).",\n    ]";
 
             // Buscar el lugar donde insertar fillable (después de "class NombreModelo extends Model")
             $modelBaseName = class_basename($model);
-            $pattern = '/(class\s+' . preg_quote($modelBaseName, '/') . '\s+extends\s+Model\s*\{)/';
+            $pattern = '/(class\s+'.preg_quote($modelBaseName, '/').'\s+extends\s+Model\s*\{)/';
             $fillableCode = "\n    protected \$fillable = {$fillableString};\n";
 
             $content = preg_replace_callback($pattern, function ($matches) use ($fillableCode) {
-                return $matches[0] . $fillableCode;
+                return $matches[0].$fillableCode;
             }, $content);
 
             $this->command->info('✅ Modelo actualizado con $fillable');
@@ -208,10 +211,10 @@ class MigrationUpdater
             if (preg_match('/(.*?)(    created_at\?:.*)/s', $existingContent, $parts)) {
                 $beforeTimestamps = $parts[1];
                 $timestamps = $parts[2];
-                $updatedContent = $beforeTimestamps . $typeDefinitions . $timestamps;
+                $updatedContent = $beforeTimestamps.$typeDefinitions.$timestamps;
             } else {
                 // Si no hay timestamps, agregar al final
-                $updatedContent = $existingContent . $typeDefinitions;
+                $updatedContent = $existingContent.$typeDefinitions;
             }
 
             $content = preg_replace(
@@ -223,7 +226,7 @@ class MigrationUpdater
             // Actualizar también el Form interface
             if (preg_match("/export interface {$name}Form \{(.*?)\n\}/s", $content, $formMatches)) {
                 $existingFormContent = $formMatches[1];
-                $updatedFormContent = $existingFormContent . $typeDefinitions;
+                $updatedFormContent = $existingFormContent.$typeDefinitions;
 
                 $content = preg_replace(
                     "/export interface {$name}Form \{.*?\n\}/s",

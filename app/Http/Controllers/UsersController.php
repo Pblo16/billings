@@ -95,7 +95,7 @@ class UsersController extends Controller
 
             return back()->with('success', 'User deleted successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 
@@ -120,7 +120,7 @@ class UsersController extends Controller
             $users = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn($user) => [
+                ->map(fn ($user) => [
                     'value' => (string) $user->id,
                     'label' => $user->name,
                 ]);

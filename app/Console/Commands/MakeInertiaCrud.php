@@ -28,14 +28,14 @@ class MakeInertiaCrud extends Command
         $name = $this->argument('name');
 
         if (! $name) {
-            note('You can organize your files using paths:' . PHP_EOL . '• Simple: Role' . PHP_EOL . '• Nested: Admin/Role' . PHP_EOL . '• Deep: Example/Components/Component');
+            note('You can organize your files using paths:'.PHP_EOL.'• Simple: Role'.PHP_EOL.'• Nested: Admin/Role'.PHP_EOL.'• Deep: Example/Components/Component');
             $this->newLine();
 
             $name = text(
                 label: 'What is the name of your model?',
                 placeholder: 'E.g. Role, Admin/Role, Example/Components/Component',
                 required: true,
-                validate: fn($value) => $this->validateModelName($value)
+                validate: fn ($value) => $this->validateModelName($value)
             );
         }
 
@@ -66,7 +66,7 @@ class MakeInertiaCrud extends Command
         $config = $nameResolver->resolve();
 
         // Crear instancias de servicios
-        $fieldManager = new FieldManager($this,  $config['pluralLower']);
+        $fieldManager = new FieldManager($this, $config['pluralLower']);
         $migrationUpdater = new MigrationUpdater($this);
         $controllerGenerator = new ControllerGenerator($this, $fieldManager);
         $reactFileGenerator = new ReactFileGenerator($this, $fieldManager);
@@ -100,17 +100,17 @@ class MakeInertiaCrud extends Command
 
         // Crear modelo + migración
         if (in_array('model', $components)) {
-            $migrationOption = in_array('migration', $components) && !$isAddingColumns ? ['-m' => true] : [];
+            $migrationOption = in_array('migration', $components) && ! $isAddingColumns ? ['-m' => true] : [];
             $this->call('make:model', array_merge(['name' => $config['modelWithPath']], $migrationOption));
-        } elseif (in_array('migration', $components) && !$isAddingColumns) {
+        } elseif (in_array('migration', $components) && ! $isAddingColumns) {
             // Solo crear migración sin modelo (si no existe)
-            $this->call('make:migration', ['name' => 'create_' . strtolower($config['model']) . 's_table']);
+            $this->call('make:migration', ['name' => 'create_'.strtolower($config['model']).'s_table']);
         }
 
         // Si estamos agregando columnas, crear migración tipo "add_columns"
-        if ($isAddingColumns && !empty($fields)) {
+        if ($isAddingColumns && ! empty($fields)) {
             $tableName = \Illuminate\Support\Str::snake(\Illuminate\Support\Str::plural($config['model']));
-            $fieldNames = implode('_and_', array_map(fn($f) => $f['name'], array_slice($fields, 0, 3)));
+            $fieldNames = implode('_and_', array_map(fn ($f) => $f['name'], array_slice($fields, 0, 3)));
             if (count($fields) > 3) {
                 $fieldNames .= '_etc';
             }
@@ -145,7 +145,7 @@ class MakeInertiaCrud extends Command
         // Crear controlador (solo si se solicita o si se están agregando columnas)
         if (in_array('controller', $components)) {
             $controllerGenerator->createController($config, $fields);
-        } elseif ($isAddingColumns && !empty($fields)) {
+        } elseif ($isAddingColumns && ! empty($fields)) {
             // Si estamos agregando columnas, preguntar si desea actualizar el controlador
             if (file_exists(app_path("Http/Controllers/{$config['controllerPath']}/{$config['controller']}.php"))) {
                 $this->newLine();
@@ -158,7 +158,7 @@ class MakeInertiaCrud extends Command
         // Generar archivos React (solo si se solicita o si se están agregando columnas)
         if (in_array('views', $components)) {
             $reactFileGenerator->generateReactFiles($config, $fields);
-        } elseif ($isAddingColumns && !empty($fields)) {
+        } elseif ($isAddingColumns && ! empty($fields)) {
             // Si estamos agregando columnas, preguntar si desea actualizar las vistas
             $indexPagePath = resource_path("js/pages/{$config['frontendPath']}/Index.tsx");
             if (file_exists($indexPagePath)) {
@@ -180,7 +180,7 @@ class MakeInertiaCrud extends Command
 
         if ($isAddingColumns) {
             $generated[] = 'Migration (add columns)';
-            if (!empty($fields)) {
+            if (! empty($fields)) {
                 $updated[] = 'Model $fillable';
                 $updated[] = 'TypeScript types';
             }
@@ -209,11 +209,11 @@ class MakeInertiaCrud extends Command
         }
 
         $this->newLine();
-        if (!empty($generated)) {
-            info('✅ ' . implode(', ', $generated) . ' created successfully!');
+        if (! empty($generated)) {
+            info('✅ '.implode(', ', $generated).' created successfully!');
         }
-        if (!empty($updated)) {
-            info('✅ ' . implode(', ', $updated) . ' updated successfully!');
+        if (! empty($updated)) {
+            info('✅ '.implode(', ', $updated).' updated successfully!');
         }
 
         if (empty($generated) && empty($updated)) {

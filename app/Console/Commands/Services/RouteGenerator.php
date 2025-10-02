@@ -78,6 +78,7 @@ class RouteGenerator
 
         if (! file_exists($apiPath)) {
             $this->command->error('routes/api.php not found');
+
             return;
         }
 
@@ -107,7 +108,7 @@ class RouteGenerator
 
         // Encontrar el middleware group y agregar la ruta antes del cierre
         $pattern = '/(Route::middleware\(\[.*?\]\)->group\(\s*function \(\) \{.*?)(}\s*\);)/s';
-        
+
         if (preg_match($pattern, $content)) {
             $content = preg_replace(
                 $pattern,
@@ -115,7 +116,7 @@ class RouteGenerator
                 $content,
                 1
             );
-            
+
             file_put_contents($apiPath, $content);
             $this->command->info('✅ API route added to routes/api.php');
         } else {
@@ -149,7 +150,7 @@ class RouteGenerator
     {
         // Construir el path de la ruta API
         $routePath = $config['routePath'];
-        $routeName = 'api.' . $config['routeName'];
+        $routeName = 'api.'.$config['routeName'];
 
         // Generar la ruta API para el método paginated
         $route = "Route::get('/{$routePath}/paginated', [{$config['controller']}::class, 'paginated'])->name('{$routeName}.paginated');";
