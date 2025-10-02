@@ -79,15 +79,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'pablo.update',
         'destroy' => 'pablo.destroy',
     ]);
-    Route::resource('global/post', PostController::class)->names([
-        'index' => 'global.post',
-        'create' => 'global.post.create',
-        'store' => 'global.post.store',
-        'show' => 'global.post.show',
-        'edit' => 'global.post.edit',
-        'update' => 'global.post.update',
-        'destroy' => 'global.post.destroy'
-    ]);
 });
 
 

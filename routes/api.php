@@ -11,6 +11,5 @@ Route::middleware(['auth:sanctum', 'web'])->group(
         // Define your API routes here
         Route::get('/users/searcheable', [UsersController::class, 'searchUsers'])->name('api.users.data');
         Route::get('/users/paginated', [UsersController::class, 'paginatedUsers'])->name('api.users.paginated');
-        Route::get('/global/post/paginated', [PostController::class, 'paginated'])->name('api.global.post.paginated');
     }
 );
