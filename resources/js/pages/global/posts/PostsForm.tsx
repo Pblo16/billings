@@ -5,8 +5,9 @@ import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { paginated } from '@/routes/api/users'
 import { store } from '@/routes/global/posts'
-import { FormFieldConfig, Posts } from '@/types'
+import { FormFieldConfig, Posts, SharedData } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { usePage } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -52,6 +53,7 @@ const formFieldsConfig: FormFieldConfig[] = [
       create: 'This is the Slug field.',
       edit: 'This is the Slug field.',
     },
+    onEditDisabled: true,
   },
   {
     name: 'text',
@@ -97,14 +99,15 @@ const PostsForm = ({
   submitButtonText = 'Submit',
 }: PostsFormProps) => {
   const formSchema = isEdit ? baseFormSchema : createFormSchema
+  const { auth } = usePage<SharedData>().props
 
   const form = useForm<PostsFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: data?.name || '',
-      slug: data?.slug || '',
+      slug: data?.slug || crypto.randomUUID(),
       text: data?.text || '',
-      user_id: data?.user_id || 0,
+      user_id: data?.user_id || auth.user.id,
     },
   })
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { TableAction, TableActions } from '@/components/table-actions'
-import { destroy, edit } from '@/routes/users'
+import { destroy, edit } from '@/routes/global/posts'
 import { GetColumnsOptions, Posts } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 export const ActionsCell = ({
@@ -20,13 +20,13 @@ export const ActionsCell = ({
 
   const actions: TableAction[] = [
     {
-      label: 'Edit user',
+      label: 'Edit Posts',
       href: edit(id).url,
       enabled: canEdit,
       variant: 'default',
     },
     {
-      label: 'Delete user',
+      label: 'Delete Posts',
       enabled: canDelete,
       variant: 'destructive',
       requiresConfirmation: true,

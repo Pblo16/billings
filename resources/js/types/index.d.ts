@@ -2,6 +2,7 @@ import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
+    user: User;
     options?: { value: string; label: string }[]; // array de cualquier tamaño (opciones manuales)
     searchUrl?: string; // URL para búsqueda asíncrona (usado con type 'select')
     disabled?: boolean;
