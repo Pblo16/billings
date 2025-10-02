@@ -53,6 +53,7 @@ const renderStandardInput = <T extends FieldValues>(
     onChange={(e) => field.onChange(e.target.value)}
     value={field.value ?? ''}
     readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+    disabled={fieldConfig.disabled || (isEdit && fieldConfig.onEditDisabled)}
   />
 )
 
@@ -70,6 +71,7 @@ const renderNumberInput = <T extends FieldValues>(
     onValueChange={(value) => field.onChange(value)}
     {...fieldConfig.numberInputProps}
     readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+    disabled={fieldConfig.disabled || (isEdit && fieldConfig.onEditDisabled)}
   />
 )
 
@@ -86,6 +88,7 @@ const renderPhoneInput = <T extends FieldValues>(
     value={field.value}
     onValueChange={(value) => field.onChange(value)}
     readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+    disabled={fieldConfig.disabled || (isEdit && fieldConfig.onEditDisabled)}
   />
 )
 

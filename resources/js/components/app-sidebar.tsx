@@ -14,7 +14,7 @@ import {
 import { dashboard, users } from '@/routes'
 import { role } from '@/routes/admin/security'
 import { clients, departments, provider } from '@/routes/control'
-import { posts } from '@/routes/global'
+import { post } from '@/routes/global'
 import { NavMainProps, type NavItem } from '@/types'
 import { Link } from '@inertiajs/react'
 import {
@@ -86,7 +86,7 @@ const mainNavItems: NavMainProps = {
       items: [
         {
           title: 'Posts',
-          href: posts(),
+          href: post(),
           icon: ScanLine,
         },
       ],
