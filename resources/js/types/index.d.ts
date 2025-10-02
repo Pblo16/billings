@@ -10,6 +10,11 @@ export interface BreadcrumbItem {
     href: string;
 }
 
+export interface ComboboxOption {
+    value: string
+    label: string
+}
+
 export interface NavGroup {
     title: string;
     items: NavItem[];

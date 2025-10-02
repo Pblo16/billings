@@ -27,14 +27,14 @@ class MakeInertiaCrud extends Command
         $name = $this->argument('name');
 
         if (! $name) {
-            note('You can organize your files using paths:'.PHP_EOL.'• Simple: Role'.PHP_EOL.'• Nested: Admin/Role'.PHP_EOL.'• Deep: Example/Components/Component');
+            note('You can organize your files using paths:' . PHP_EOL . '• Simple: Role' . PHP_EOL . '• Nested: Admin/Role' . PHP_EOL . '• Deep: Example/Components/Component');
             $this->newLine();
 
             $name = text(
                 label: 'What is the name of your model?',
                 placeholder: 'E.g. Role, Admin/Role, Example/Components/Component',
                 required: true,
-                validate: fn ($value) => $this->validateModelName($value)
+                validate: fn($value) => $this->validateModelName($value)
             );
         }
 
@@ -65,7 +65,7 @@ class MakeInertiaCrud extends Command
         $config = $nameResolver->resolve();
 
         // Crear instancias de servicios
-        $fieldManager = new FieldManager($this, $config['model']);
+        $fieldManager = new FieldManager($this,  $config['pluralLower']);
         $migrationUpdater = new MigrationUpdater($this);
         $controllerGenerator = new ControllerGenerator($this, $fieldManager);
         $reactFileGenerator = new ReactFileGenerator($this, $fieldManager);
@@ -83,7 +83,7 @@ class MakeInertiaCrud extends Command
             $this->call('make:model', array_merge(['name' => $config['modelWithPath']], $migrationOption));
         } elseif (in_array('migration', $components)) {
             // Solo crear migración sin modelo
-            $this->call('make:migration', ['name' => 'create_'.strtolower($config['model']).'s_table']);
+            $this->call('make:migration', ['name' => 'create_' . strtolower($config['model']) . 's_table']);
         }
 
         // Modificar archivos si hay campos y migración
@@ -134,7 +134,7 @@ class MakeInertiaCrud extends Command
 
         $this->call('migrate');
 
-        info(implode(', ', $generated).' created successfully!');
+        info(implode(', ', $generated) . ' created successfully!');
     }
 
     private function validateModelName(?string $value): ?string

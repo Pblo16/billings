@@ -13,7 +13,7 @@ use function Laravel\Prompts\warning;
 
 class FieldManager
 {
-    private string $modelName;
+    private string $pluralLower;
 
     private const FIELD_TYPES = [
         'string',
@@ -47,9 +47,9 @@ class FieldManager
 
     public function __construct(
         private Command $command,
-        string $modelName = 'model'
+        string $pluralLower = 'model'
     ) {
-        $this->modelName = $modelName;
+        $this->pluralLower = $pluralLower;
     }
 
     public function askForFields(): array
@@ -57,7 +57,7 @@ class FieldManager
         $fields = [];
 
         info('Now we will define the model fields');
-        note('• Use arrow keys ↑↓ to navigate options'.PHP_EOL.'• Press ESC to skip optional fields');
+        note('• Use arrow keys ↑↓ to navigate options' . PHP_EOL . '• Press ESC to skip optional fields');
         $this->command->newLine();
 
         while (true) {
@@ -65,7 +65,7 @@ class FieldManager
                 label: 'Field name',
                 placeholder: 'E.g. title, description, price',
                 hint: 'Press Ctrl+C to finish adding fields',
-                validate: fn ($value) => $this->validateFieldName($value, $fields)
+                validate: fn($value) => $this->validateFieldName($value, $fields)
             );
 
             if (empty($fieldName)) {
@@ -159,7 +159,7 @@ class FieldManager
                         label: "Max length for '{$fieldName}'",
                         placeholder: 'E.g. 255',
                         default: '255',
-                        validate: fn ($value) => ! is_numeric($value) ? 'Must be a number' : null
+                        validate: fn($value) => ! is_numeric($value) ? 'Must be a number' : null
                     );
                 }
                 break;
@@ -170,13 +170,13 @@ class FieldManager
                     label: "Total precision for '{$fieldName}' (total digits)",
                     placeholder: 'E.g. 8',
                     default: '8',
-                    validate: fn ($value) => ! is_numeric($value) ? 'Must be a number' : null
+                    validate: fn($value) => ! is_numeric($value) ? 'Must be a number' : null
                 );
                 $scale = text(
                     label: "Scale for '{$fieldName}' (decimal digits)",
                     placeholder: 'E.g. 2',
                     default: '2',
-                    validate: fn ($value) => ! is_numeric($value) ? 'Must be a number' : null
+                    validate: fn($value) => ! is_numeric($value) ? 'Must be a number' : null
                 );
                 $additional['precision'] = $precision;
                 $additional['scale'] = $scale;
@@ -413,10 +413,10 @@ JS;
             // Agregar regla unique si está marcado
             if (isset($field['unique']) && $field['unique']) {
 
-                $rules[] = 'unique:'.strtolower(class_basename($this->modelName)).'s';
+                $rules[] = 'unique:' . strtolower(class_basename($this->pluralLower));
             }
 
-            $validationRules[] = "'{$field['name']}' => '".implode('|', $rules)."'";
+            $validationRules[] = "'{$field['name']}' => '" . implode('|', $rules) . "'";
         }
 
         return $validationRules;
