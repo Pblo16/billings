@@ -478,4 +478,30 @@ JS;
 
         return $migrationFields;
     }
+
+    public function getFieldNamesForSelect(): string
+    {
+        // Este método será llamado desde el controlador con los campos ya configurados
+        // Por ahora retornamos una cadena que se puede usar en el template
+        return "'id', 'created_at'";
+    }
+
+    public function setFieldsForSelect(array $fields): void
+    {
+        $this->fields = $fields;
+    }
+
+    private array $fields = [];
+
+    public function getFieldNamesForSelectFromFields(): string
+    {
+        if (empty($this->fields)) {
+            return "'id', 'created_at'";
+        }
+
+        $fieldNames = array_map(fn($field) => "'{$field['name']}'", $this->fields);
+        $fieldNames = array_merge(['id'], $fieldNames, ['created_at']);
+        
+        return implode(', ', $fieldNames);
+    }
 }

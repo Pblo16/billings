@@ -23,6 +23,9 @@ class ControllerGenerator
             mkdir($controllerDir, 0755, true);
         }
 
+        // Configurar campos para el método select
+        $this->fieldManager->setFieldsForSelect($fields);
+
         // Generar reglas de validación usando FieldManager
         $validationRules = $this->fieldManager->generateValidationRules($fields);
         $validationString = implode(",\n                ", $validationRules);
@@ -55,6 +58,9 @@ class ControllerGenerator
         string $validationString
     ): string {
         $viewBase = ($config['parentPathLower'] ? $config['parentPathLower'].'/' : '').$config['pluralLower'];
+        
+        // Generar la lista de campos para el select del paginated
+        $selectFields = $this->fieldManager->getFieldNamesForSelectFromFields();
 
         return <<<PHP
 <?php
@@ -148,6 +154,17 @@ class {$config['controller']} extends Controller
     }
 
     return redirect()->route('{$config['fullRouteName']}')->with('success', 'Registro eliminado exitosamente.');
+  }
+
+  /**
+   * Get paginated data for API.
+   */
+  public function paginated(Request \$request)
+  {
+    \$perPage = \$request->get('perPage', 10);
+    \$query = {$config['model']}::query()->select({$selectFields})->paginate(\$perPage);
+
+    return response()->json(\$query);
   }
 }
 PHP;

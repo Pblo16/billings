@@ -1,14 +1,25 @@
+import AppPaginator from '@/components/app-paginator'
 import { DataTable } from '@/components/data-table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import useFetch from '@/hooks/use-fetch'
 import AppLayout from '@/layouts/app-layout'
-import { columns } from '@/pages/{{routePath}}{{pluralLower}}/columns'
+import { columns, {{name}}ActionsCell } from '@/pages/{{routePath}}{{pluralLower}}/columns'
+import { {{pluralLower}} } from '@/routes/{{routePath}}'
+import { paginated } from '@/routes/api/{{routePath}}{{pluralLower}}'
 import { create } from '@/routes/{{routePath}}{{nameLower}}'
 import { type BreadcrumbItem, type {{name}} } from '@/types'
-import { {{nameLower}} }  from '@/routes/{{routePath}}'
+import { useState } from 'react'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: '{{name}}',
-    href: {{nameLower}}().url,
+    title: '{{pluralName}}',
+    href: {{pluralLower}}().url,
   },
 ]
 
@@ -16,16 +27,68 @@ const headerActions = [
   {
     label: 'New {{name}}',
     href: create().url,
-    variant: 'outline' as const,
   },
 ]
 
-const {{name}}Index = (props: { data: {{name}}[] }) => {
-  const { data } = props
+const {{name}}Index = () => {
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState('10')
+
+  const { data, loading, error, refetch } = useFetch(
+    `${paginated().url}?page=${page}&perPage=${perPage}`,
+  )
+
+  // Create columns with refetch callback
+  const columnsWithActions = columns.map((col) => {
+    if (col.id === 'actions') {
+      return {
+        ...col,
+        cell: ({ row }: any) => {
+          const {{nameLower}} = row.original
+          return <{{name}}ActionsCell {{nameLower}}={ {{nameLower}} } onDelete={refetch} />
+        },
+      }
+    }
+    return col
+  })
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <DataTable columns={columns} data={data ?? null} header={headerActions} />
+      <DataTable
+        loading={loading}
+        error={error}
+        columns={columnsWithActions}
+        data={data?.data ?? []}
+        header={headerActions}
+        paginator={
+          data && (
+            <AppPaginator
+              currentPage={data.current_page}
+              lastPage={data.last_page}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
+          )
+        }
+        count={
+          <Select
+            value={perPage}
+            onValueChange={(value) => {
+              setPerPage(value)
+              setPage(1) // Reset to first page when changing items per page
+            }}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+      ></DataTable>
     </AppLayout>
   )
 }
