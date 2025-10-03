@@ -70,7 +70,6 @@ interface RoleFormProps {
 
 const renderExtraFields = (form: any) => {
   const categories = useFetch<PermissionGroup[]>(permissions().url)
-  console.log('Fetched categories:', categories.data)
   // Aquí puedes agregar lógica para renderizar campos adicionales según si es edición o creación
   return (
     <>

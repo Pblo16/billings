@@ -25,9 +25,13 @@ export function InputWithIcon(props: InputWithIconProps) {
   } = props
   const [value, setValue] = useState(props.value ?? '')
   const timer = useRef<NodeJS.Timeout | null>(null)
+  const isControlled = useRef(props.value !== undefined)
 
   useEffect(() => {
-    setValue(props.value ?? '')
+    // Only sync external value if component is controlled
+    if (isControlled.current && props.value !== undefined) {
+      setValue(props.value)
+    }
   }, [props.value])
 
   useEffect(() => {
@@ -39,7 +43,8 @@ export function InputWithIcon(props: InputWithIconProps) {
     return () => {
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [value, debounce, onDebouncedChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, debounce])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value)
@@ -72,7 +77,14 @@ export function InputWithIcon(props: InputWithIconProps) {
           className="top-1/2 right-3 absolute m-0 p-0 focus:outline-none text-muted-foreground hover:text-foreground text-lg -translate-y-1/2"
           aria-label="Clear"
           tabIndex={0}
-          onClick={() => setValue('')}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setValue('')
+            if (onDebouncedChange) {
+              onDebouncedChange('')
+            }
+          }}
         >
           &#10005;
         </button>

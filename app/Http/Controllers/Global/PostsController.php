@@ -43,7 +43,6 @@ class PostsController extends Controller
             'user_id' => 'required|integer',
         ]);
         $posts = Posts::create($validated);
-        dd($posts);
         // Attach colaborators
         foreach ($colaborators as $colaboratorId) {
             $posts->details()->create(['colaborator_id' => $colaboratorId]);
@@ -106,7 +105,7 @@ class PostsController extends Controller
             $data = Posts::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
         }
 
         return redirect()->route('global.posts')->with('success', 'Registro eliminado exitosamente.');

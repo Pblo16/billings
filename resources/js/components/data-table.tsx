@@ -26,7 +26,7 @@ import useFetch from '@/hooks/use-fetch'
 import { PaginatedResponse } from '@/types'
 import { Link } from '@inertiajs/react'
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AppPaginator from './app-paginator'
 import { Button } from './ui/button'
 import { InputWithIcon } from './ui/input-incon'
@@ -80,20 +80,40 @@ export function DataTable<TData, TValue>({
   // Determine which state to use
   const page = apiUrl ? internalPage : (externalPage ?? 1)
   const perPage = apiUrl ? internalPerPage : (externalPerPage ?? '10')
-  const setPageFn = apiUrl ? setInternalPage : externalSetPage
-  const setPerPageFn = apiUrl ? setInternalPerPage : externalSetPerPage
+  const setPageFn = useCallback(
+    (newPage: number) => {
+      if (apiUrl) {
+        setInternalPage(newPage)
+      } else if (externalSetPage) {
+        externalSetPage(newPage)
+      }
+    },
+    [apiUrl, externalSetPage],
+  )
+
+  const setPerPageFn = useCallback(
+    (newPerPage: string) => {
+      if (apiUrl) {
+        setInternalPerPage(newPerPage)
+      } else if (externalSetPerPage) {
+        externalSetPerPage(newPerPage)
+      }
+    },
+    [apiUrl, externalSetPerPage],
+  )
   // Fetch data if apiUrl is provided
   const fetchUrl = apiUrl
     ? `${apiUrl}?page=${page}&perPage=${perPage}&sortBy=${sortBy}&sortDirection=${sortDirection}&search=${encodeURIComponent(search)}`
     : ''
   const fetchResult = useFetch<PaginatedResponse<TData>>(fetchUrl)
 
-  // Expose refetch to parent if callback provided
+  // Expose refetch to parent if callback provided (only once on mount)
   useEffect(() => {
     if (onRefetch && apiUrl && fetchResult.refetch) {
       onRefetch(fetchResult.refetch)
     }
-  }, [onRefetch, apiUrl, fetchResult.refetch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onRefetch, apiUrl])
 
   // Determine final data, loading, and error states
   const data = apiUrl ? fetchResult.data : externalData
@@ -115,13 +135,25 @@ export function DataTable<TData, TValue>({
   })
 
   // Handle page change
-  const handlePageChange = (newPage: number) => {
-    if (apiUrl) {
-      setInternalPage(newPage)
-    } else if (externalOnPageChange) {
-      externalOnPageChange(newPage)
-    }
-  }
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (apiUrl) {
+        setInternalPage(newPage)
+      } else if (externalOnPageChange) {
+        externalOnPageChange(newPage)
+      }
+    },
+    [apiUrl, externalOnPageChange],
+  )
+
+  // Handle search change
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value)
+      setPageFn(1) // Reset to first page on search
+    },
+    [setPageFn],
+  )
 
   return (
     <div className="flex flex-col px-4 pt-4 rounded-md w-full h-full">
@@ -138,8 +170,8 @@ export function DataTable<TData, TValue>({
               <Select
                 value={perPage}
                 onValueChange={(value) => {
-                  setPerPageFn?.(value)
-                  setPageFn?.(1) // Reset to first page when changing items per page
+                  setPerPageFn(value)
+                  setPageFn(1) // Reset to first page when changing items per page
                 }}
               >
                 <SelectTrigger className="w-full sm:w-[100px]">
@@ -165,10 +197,7 @@ export function DataTable<TData, TValue>({
             debounce={500}
             placeholder="Search..."
             clear
-            onDebouncedChange={(value) => {
-              setSearch(value)
-              setPageFn?.(1) // Reset to first page on search
-            }}
+            onDebouncedChange={handleSearchChange}
           />
         </div>
         {/* Right section: Pagination and actions */}
