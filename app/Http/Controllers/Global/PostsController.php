@@ -43,7 +43,7 @@ class PostsController extends Controller
             'user_id' => 'required|integer',
         ]);
         $posts = Posts::create($validated);
-
+        dd($posts);
         // Attach colaborators
         foreach ($colaborators as $colaboratorId) {
             $posts->details()->create(['colaborator_id' => $colaboratorId]);

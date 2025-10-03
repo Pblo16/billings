@@ -41,6 +41,10 @@ class Permissions extends Command
         $models = array_map(function ($file) {
             return pathinfo($file, PATHINFO_FILENAME);
         }, $modelFiles);
+
+        $models = array_filter($models, function ($model) {
+            return stripos($model, 'Detail') === false;
+        });
         info($models);
 
         foreach ($models as $model) {

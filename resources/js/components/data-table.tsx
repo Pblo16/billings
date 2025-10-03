@@ -161,10 +161,12 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="flex-1">
           <InputWithIcon
-            icon={Search}
+            suffix={Search}
+            debounce={500}
             placeholder="Search..."
-            onChange={(e) => {
-              setSearch(e.target.value)
+            clear
+            onDebouncedChange={(value) => {
+              setSearch(value)
               setPageFn?.(1) // Reset to first page on search
             }}
           />

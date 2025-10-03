@@ -35,7 +35,7 @@ class RoleController extends Controller
         $permissions = $request->input('permissions', []);
         $guard_name = $request->input('guard_name', 'web'); // Default to 'web' if not provided
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:roles',
         ]);
         $validated['guard_name'] = $guard_name;
 
@@ -80,7 +80,7 @@ class RoleController extends Controller
         $validated['guard_name'] = $guard_name;
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:roles,name,' . $id,
         ]);
         $data = Role::findOrFail($id);
         $data->update($validated);
