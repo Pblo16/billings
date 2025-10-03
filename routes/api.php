@@ -24,7 +24,7 @@ Route::middleware('guest')->group(function () {
             'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return response()->json(['message' => 'Invalid login'], 401);
         }
 

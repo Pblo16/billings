@@ -4,7 +4,6 @@ namespace App\Models\Global;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 /**
  * PostDetails model
  *
@@ -21,6 +20,7 @@ class PostDetails extends Model
 
     /**
      * Post asociado
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function post()
@@ -30,6 +30,7 @@ class PostDetails extends Model
 
     /**
      * Usuario colaborador
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function colaborator()

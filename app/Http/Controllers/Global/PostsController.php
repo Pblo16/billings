@@ -106,7 +106,7 @@ class PostsController extends Controller
             $data = Posts::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
 
         return redirect()->route('global.posts')->with('success', 'Registro eliminado exitosamente.');

@@ -15,10 +15,14 @@ echo "Caching routes..."
 php artisan route:cache
 
 echo "Running migrations..."
-php artisan migrate --force
+php artisan migrate
 
 echo "Seeding database..."
-php artisan db:seed --force
+php artisan db:seed
+
+echo "Permissions..."
+php artisan app:permissions 
+
 
 echo "Listing routes..."
 php artisan route:list 

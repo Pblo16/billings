@@ -12,7 +12,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-
 /**
  * User model
  *
@@ -22,11 +21,11 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class User extends Authenticatable
 {
+    use HasApiTokens;
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
-
     use HasRoles;
-    use HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -64,6 +63,7 @@ class User extends Authenticatable
 
     /**
      * Posts creados por el usuario
+     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function posts()
@@ -73,6 +73,7 @@ class User extends Authenticatable
 
     /**
      * Posts donde el usuario es colaborador
+     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function colaboratedPosts()

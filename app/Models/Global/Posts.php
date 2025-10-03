@@ -4,7 +4,6 @@ namespace App\Models\Global;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 /**
  * Posts model
  *
@@ -23,6 +22,7 @@ class Posts extends Model
 
     /**
      * Usuario autor del post
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
@@ -32,6 +32,7 @@ class Posts extends Model
 
     /**
      * Detalles de colaborador (colaboradores asociados a este post)
+     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function details()

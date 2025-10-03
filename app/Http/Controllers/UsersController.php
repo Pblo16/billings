@@ -89,6 +89,7 @@ class UsersController extends Controller
 
         $user->update($updateData);
         $user->syncRoles($roles);
+
         return redirect()->route('users')->with('success', "User {$user->id} updated successfully");
     }
 
@@ -103,7 +104,7 @@ class UsersController extends Controller
 
             return back()->with('success', 'User deleted successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 
@@ -128,7 +129,7 @@ class UsersController extends Controller
             $data = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn($item) => [
+                ->map(fn ($item) => [
                     'value' => (string) $item->id,
                     'label' => $item->name,
                 ]);

@@ -42,7 +42,6 @@ class RoleController extends Controller
         $role = Role::create($validated);
         $role->permissions()->sync($permissions);
 
-
         return redirect()->route('admin.security.role')->with('success', 'Registro creado exitosamente.');
     }
 
@@ -80,7 +79,7 @@ class RoleController extends Controller
         $validated['guard_name'] = $guard_name;
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+            'name' => 'required|string|max:255|unique:roles,name,'.$id,
         ]);
         $data = Role::findOrFail($id);
         $data->update($validated);
@@ -98,7 +97,7 @@ class RoleController extends Controller
             $data = Role::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
 
         return redirect()->route('admin.security.role')->with('success', 'Registro eliminado exitosamente.');
@@ -130,7 +129,7 @@ class RoleController extends Controller
             $data = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn($item) => [
+                ->map(fn ($item) => [
                     'value' => (string) $item->id,
                     'label' => $item->name,
                 ]);

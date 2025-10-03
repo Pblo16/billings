@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Dotenv\Store\File\Paths;
 use Illuminate\Console\Command;
 
 class Permissions extends Command
@@ -63,6 +62,7 @@ class Permissions extends Command
                 // Check if permission already exists
                 if (\Spatie\Permission\Models\Permission::where('name', $perm)->exists()) {
                     $this->info("Permission '$perm' already exists. Skipping.");
+
                     continue;
                 }
 

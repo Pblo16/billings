@@ -35,7 +35,7 @@ class Permissions extends Controller
                 $category = 'Other';
             }
 
-            if (!isset($grouped[$category])) {
+            if (! isset($grouped[$category])) {
                 $grouped[$category] = [];
             }
             $grouped[$category][] = $permission;
@@ -46,7 +46,7 @@ class Permissions extends Controller
         foreach ($grouped as $category => $perms) {
             $result[] = [
                 'category' => $category,
-                'permissions' => $perms
+                'permissions' => $perms,
             ];
         }
 
