@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\Security\RoleController;
 use App\Http\Controllers\Global\PostsController;
 use App\Http\Controllers\UsersController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'web'])->group(
@@ -14,3 +16,21 @@ Route::middleware(['auth:sanctum', 'web'])->group(
         Route::get('/security/permissions', [\App\Http\Controllers\Admin\Security\Permissions::class, 'index'])->name('api.security.permissions');
     }
 );
+
+Route::middleware('guest')->group(function () {
+    Route::post('/login', function (Request $request) {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (!Auth::attempt($credentials)) {
+            return response()->json(['message' => 'Invalid login'], 401);
+        }
+
+        $user = Auth::user();
+        $token = $user->createToken('postman')->plainTextToken;
+
+        return response()->json(['token' => $token]);
+    });
+});

@@ -246,26 +246,6 @@ export function AsyncComboboxMultiple({
 
   return (
     <div className="space-y-2">
-      {/* Selected items as badges */}
-      {stringValues.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {stringValues.map((val) => (
-            <Badge key={val} variant="secondary" className="gap-1">
-              {selectedOptionsCache.get(val) || val}
-              {!readOnly && (
-                <button
-                  type="button"
-                  onClick={(e) => handleRemove(val, e)}
-                  className="hover:bg-muted ml-1 rounded-full"
-                >
-                  <XIcon className="w-3 h-3" />
-                </button>
-              )}
-            </Badge>
-          ))}
-        </div>
-      )}
-
       {/* Combobox */}
       <Popover
         open={readOnly ? false : open}
@@ -371,6 +351,25 @@ export function AsyncComboboxMultiple({
           </PopoverContent>
         )}
       </Popover>
+      {/* Selected items as badges */}
+      {stringValues.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {stringValues.map((val) => (
+            <Badge key={val} variant="secondary" className="gap-1">
+              {selectedOptionsCache.get(val) || val}
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={(e) => handleRemove(val, e)}
+                  className="hover:bg-muted ml-1 rounded-full"
+                >
+                  <XIcon className="w-3 h-3" />
+                </button>
+              )}
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

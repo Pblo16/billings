@@ -34,14 +34,20 @@ class PostsController extends Controller
      */
     public function store(Request $request)
     {
+        $colaborators = $request->input('colaborators', []);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:posts',
             'text' => 'nullable|string',
             'user_id' => 'required|integer',
-            'colaborator' => 'nullable|integer',
         ]);
-        Posts::create($validated);
+        $posts = Posts::create($validated);
+
+        // Attach colaborators
+        foreach ($colaborators as $colaboratorId) {
+            $posts->details()->create(['colaborator_id' => $colaboratorId]);
+        }
 
         return redirect()->route('global.posts')->with('success', 'Registro creado exitosamente.');
     }
@@ -59,7 +65,7 @@ class PostsController extends Controller
      */
     public function edit(string $id)
     {
-        $data = Posts::findOrFail($id);
+        $data = Posts::with('details.colaborator')->findOrFail($id);
 
         return Inertia::render('global/posts/Upsert', [
             'data' => $data,
@@ -72,15 +78,21 @@ class PostsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $colaborators = $request->input('colaborators', []);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:posts',
             'text' => 'nullable|string',
             'user_id' => 'required|integer',
-            'colaborator' => 'nullable|integer',
         ]);
         $data = Posts::findOrFail($id);
         $data->update($validated);
+
+        // Sync colaborators: eliminar los existentes y agregar los nuevos
+        $data->details()->delete();
+        foreach ($colaborators as $colaboratorId) {
+            $data->details()->create(['colaborator_id' => $colaboratorId]);
+        }
 
         return redirect()->route('global.posts')->with('success', 'Registro actualizado exitosamente.');
     }
@@ -94,7 +106,7 @@ class PostsController extends Controller
             $data = Posts::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
         }
 
         return redirect()->route('global.posts')->with('success', 'Registro eliminado exitosamente.');
@@ -106,10 +118,8 @@ class PostsController extends Controller
     public function paginated(Request $request)
     {
         $query = Posts::query();
-
         // Include colaborator relationship
-        $query->with(['colaborator:id,name', 'user:id,name']);
-
+        $query->with('details.colaborator');
         // Apply search filter if provided
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")

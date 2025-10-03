@@ -173,18 +173,19 @@ export interface Posts {
     slug: string;
     text?: string;
     user_id: number;
-    colaborator?: number; // Can be ID or User object when relationship is loaded
+    colaborators?: User[]; // Can be ID or User object when relationship is loaded
     user?: User;
     created_at?: string;
     updated_at?: string;
+    details?: { colaborator: User; colaborator_id: number }[];
 }
 
-export interface PostsForm {
+export interface PostsFormData extends Record<string, unknown> {
     name: string;
     slug: string;
     text?: string;
     user_id: number;
-    colaborator?: number;
+    details?: { colaborator_id: number }[];
 }
 
 export interface Permission {
