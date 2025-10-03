@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { set } from 'zod'
 
 // Generic useFetch hook that returns typed data
 const useFetch = <T,>(url: string, options?: RequestInit) => {
@@ -30,6 +29,7 @@ const useFetch = <T,>(url: string, options?: RequestInit) => {
           throw new Error('Network response was not ok')
         }
         const result = (await response.json()) as T
+        // throw new Error('Fetch failed')
         setData(result)
       } catch (err) {
         if ((err as any).name === 'AbortError') return
@@ -38,7 +38,6 @@ const useFetch = <T,>(url: string, options?: RequestInit) => {
         setLoading(false)
       }
     }
-
     fetchData()
 
     return () => controller.abort()

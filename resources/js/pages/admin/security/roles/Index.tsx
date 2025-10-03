@@ -1,11 +1,11 @@
 import { DataTable } from '@/components/data-table'
 import AppLayout from '@/layouts/app-layout'
-import { getColumns } from '@/pages/users/columns'
 import { role } from '@/routes/admin/security/'
 import { create } from '@/routes/admin/security/role'
 import { paginated } from '@/routes/api/security/roles'
 import { type BreadcrumbItem } from '@/types'
 import { useRef } from 'react'
+import { getColumns } from './columns'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {

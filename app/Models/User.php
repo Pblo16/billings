@@ -9,13 +9,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * User model
+ *
+ * Relaciones:
+ * - posts(): Posts creados por el usuario (hasMany Posts)
+ * - colaboratedPosts(): Posts donde el usuario es colaborador (hasMany PostDetails)
+ */
 class User extends Authenticatable
 {
+    use HasApiTokens;
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
-
     use HasRoles;
 
     /**
@@ -52,13 +61,23 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Posts creados por el usuario
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function posts()
     {
         return $this->hasMany(Posts::class, 'user_id');
     }
 
+    /**
+     * Posts donde el usuario es colaborador
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function colaboratedPosts()
     {
-        return $this->hasMany(Posts::class, 'colaborator');
+        return $this->hasMany(\App\Models\Global\PostDetails::class, 'colaborator_id');
     }
 }

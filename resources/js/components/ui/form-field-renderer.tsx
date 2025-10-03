@@ -19,6 +19,7 @@ import {
   Path,
 } from 'react-hook-form'
 import { AsyncCombobox } from './async-combobox'
+import { AsyncComboboxMultiple } from './async-combobox-multiple'
 import { Combobox } from './combobox'
 
 interface FormFieldRendererProps<T extends FieldValues> {
@@ -126,6 +127,27 @@ const renderSelectInput = <T extends FieldValues>(
 }
 
 /**
+ * Renders a multi-select input with badges
+ */
+const renderMultiSelectInput = <T extends FieldValues>(
+  field: ControllerRenderProps<T, Path<T>>,
+  fieldConfig: FormFieldConfig,
+  isEdit: boolean,
+) => {
+  return (
+    <AsyncComboboxMultiple
+      searchUrl={fieldConfig.searchUrl}
+      options={fieldConfig.options}
+      value={field.value}
+      onChange={(value) => field.onChange(value)}
+      readOnly={fieldConfig.readOnly || (isEdit && fieldConfig.onEditReadOnly)}
+      placeholder={getContextualText(fieldConfig.placeholder, isEdit)}
+      show={fieldConfig.show}
+    />
+  )
+}
+
+/**
  * Renders the appropriate input based on field type
  */
 const renderInputByType = <T extends FieldValues>(
@@ -140,6 +162,8 @@ const renderInputByType = <T extends FieldValues>(
       return renderPhoneInput(field, fieldConfig, isEdit)
     case 'select':
       return renderSelectInput(field, fieldConfig, isEdit)
+    case 'multi-select':
+      return renderMultiSelectInput(field, fieldConfig, isEdit)
     default:
       return renderStandardInput(field, fieldConfig, isEdit)
   }

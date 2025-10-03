@@ -244,69 +244,83 @@ export function AsyncCombobox({
             />
             <CommandList>
               {loading && (
-                <div className="flex justify-center items-center p-4">
-                  <Loader2Icon className="w-5 h-5 animate-spin" />
-                  <span className="ml-2 text-sm">Searching...</span>
-                </div>
+                <React.Fragment key="loading">
+                  <div className="flex justify-center items-center p-4">
+                    <Loader2Icon className="w-5 h-5 animate-spin" />
+                    <span className="ml-2 text-sm">Searching...</span>
+                  </div>
+                </React.Fragment>
               )}
               {error && !loading && (
-                <div className="p-4 text-destructive text-sm text-center">
-                  <p className="font-medium">Error loading options</p>
-                  <p className="mt-1 text-muted-foreground text-xs">{error}</p>
-                </div>
+                <React.Fragment key="error">
+                  <div className="p-4 text-destructive text-sm text-center">
+                    <p className="font-medium">Error loading options</p>
+                    <p className="mt-1 text-muted-foreground text-xs">
+                      {error}
+                    </p>
+                  </div>
+                </React.Fragment>
               )}
               {!loading && !error && options.length === 0 && (
-                <CommandEmpty>{emptyMessage}</CommandEmpty>
+                <React.Fragment key="empty">
+                  <CommandEmpty>{emptyMessage}</CommandEmpty>
+                </React.Fragment>
               )}
               {!loading && !error && options.length > 0 && (
-                <CommandGroup>
-                  {options.map((option: { value: string; label: string }) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={() => {
-                        const newValue =
-                          option.value === stringValue ? '' : option.value
+                <React.Fragment key="options">
+                  <CommandGroup>
+                    {options.map((option: { value: string; label: string }) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        onSelect={() => {
+                          const newValue =
+                            option.value === stringValue ? '' : option.value
 
-                        // Cachear la opción seleccionada para mostrarla después
-                        if (newValue !== '') {
-                          setSelectedOptionCache(option)
-                        } else {
-                          setSelectedOptionCache(null)
-                        }
+                          // Cachear la opción seleccionada para mostrarla después
+                          if (newValue !== '') {
+                            setSelectedOptionCache(option)
+                          } else {
+                            setSelectedOptionCache(null)
+                          }
 
-                        // Intentar convertir a número si es posible y no está vacío
-                        const finalValue =
-                          newValue === '' || isNaN(Number(newValue))
-                            ? newValue
-                            : Number(newValue)
-                        onChange?.(finalValue)
-                        setSearch('') // Limpiar búsqueda al seleccionar
-                        setOpen(false)
-                      }}
-                    >
-                      <CheckIcon
-                        className={cn(
-                          'mr-2 w-4 h-4',
-                          stringValue === option.value
-                            ? 'opacity-100'
-                            : 'opacity-0',
-                        )}
-                      />
-                      {option.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                          // Intentar convertir a número si es posible y no está vacío
+                          const finalValue =
+                            newValue === '' || isNaN(Number(newValue))
+                              ? newValue
+                              : Number(newValue)
+                          onChange?.(finalValue)
+                          setSearch('') // Limpiar búsqueda al seleccionar
+                          setOpen(false)
+                        }}
+                      >
+                        <CheckIcon
+                          className={cn(
+                            'mr-2 w-4 h-4',
+                            stringValue === option.value
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                        {option.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </React.Fragment>
               )}
               {!search && !loading && !error && useAsyncSearch && (
-                <div className="p-2 border-t text-muted-foreground text-xs text-center">
-                  Type to search...
-                </div>
+                <React.Fragment key="help-text">
+                  <div className="p-2 border-t text-muted-foreground text-xs text-center">
+                    Type to search...
+                  </div>
+                </React.Fragment>
               )}
               {search && !loading && !error && useAsyncSearch && (
-                <div className="p-2 border-t text-muted-foreground text-xs text-center">
-                  Showing {options.length} of up to {show} results
-                </div>
+                <React.Fragment key="results-count">
+                  <div className="p-2 border-t text-muted-foreground text-xs text-center">
+                    Showing {options.length} of up to {show} results
+                  </div>
+                </React.Fragment>
               )}
             </CommandList>
           </Command>

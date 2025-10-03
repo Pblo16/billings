@@ -25,10 +25,11 @@ import {
 import useFetch from '@/hooks/use-fetch'
 import { PaginatedResponse } from '@/types'
 import { Link } from '@inertiajs/react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import AppPaginator from './app-paginator'
 import { Button } from './ui/button'
+import { InputWithIcon } from './ui/input-incon'
 
 // Define a custom type for header actions
 interface HeaderAction {
@@ -75,6 +76,7 @@ export function DataTable<TData, TValue>({
   const [internalPerPage, setInternalPerPage] = useState('10')
   const [sortBy, setSortBy] = useState('id')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [search, setSearch] = useState('')
   // Determine which state to use
   const page = apiUrl ? internalPage : (externalPage ?? 1)
   const perPage = apiUrl ? internalPerPage : (externalPerPage ?? '10')
@@ -82,7 +84,7 @@ export function DataTable<TData, TValue>({
   const setPerPageFn = apiUrl ? setInternalPerPage : externalSetPerPage
   // Fetch data if apiUrl is provided
   const fetchUrl = apiUrl
-    ? `${apiUrl}?page=${page}&perPage=${perPage}&sortBy=${sortBy}&sortDirection=${sortDirection}`
+    ? `${apiUrl}?page=${page}&perPage=${perPage}&sortBy=${sortBy}&sortDirection=${sortDirection}&search=${encodeURIComponent(search)}`
     : ''
   const fetchResult = useFetch<PaginatedResponse<TData>>(fetchUrl)
 
@@ -123,10 +125,15 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col px-4 pt-4 rounded-md w-full h-full">
-      <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 mb-2 border-b">
+      <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 mb-2 pb-4 border-b">
         {/* Left section: Per page selector and count */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
-          {paginated && (
+          {loading && !paginated ? (
+            <>
+              <div className="bg-muted rounded-md w-full sm:w-[100px] h-10 animate-pulse" />
+              <div className="bg-muted rounded w-48 h-4 animate-pulse" />
+            </>
+          ) : paginated ? (
             <>
               <Select
                 value={perPage}
@@ -150,18 +157,31 @@ export function DataTable<TData, TValue>({
                 {paginated.total} results
               </div>
             </>
-          )}
+          ) : null}
         </div>
-
+        <div className="flex-1">
+          <InputWithIcon
+            suffix={Search}
+            debounce={500}
+            placeholder="Search..."
+            clear
+            onDebouncedChange={(value) => {
+              setSearch(value)
+              setPageFn?.(1) // Reset to first page on search
+            }}
+          />
+        </div>
         {/* Right section: Pagination and actions */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
-          {paginated && (
+          {loading && !paginated ? (
+            <div className="bg-muted rounded-md w-64 h-10 animate-pulse" />
+          ) : paginated ? (
             <AppPaginator
               currentPage={paginated.current_page}
               lastPage={paginated.last_page}
               onPageChange={handlePageChange}
             />
-          )}
+          ) : null}
           {header && header.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {header.map((action, idx) => (
@@ -178,96 +198,102 @@ export function DataTable<TData, TValue>({
           )}
         </div>
       </header>
-      {loading && (
-        <div className="p-6 text-muted-foreground text-sm text-center">
-          Loading...
-        </div>
-      )}
-      {error && (
-        <div className="p-6 text-destructive text-sm text-center">
-          Error: {error.message}
-        </div>
-      )}
-      {rowsData.length >= 0 && !loading && !error && (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} className="whitespace-nowrap">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                        {header.column.getCanSort() ? (
-                          <button
-                            onClick={() => {
-                              const isAsc =
-                                sortBy === (header.column.id as string) &&
-                                sortDirection === 'asc'
-                              const newDirection = isAsc ? 'desc' : 'asc'
-                              setSortBy(header.column.id as string)
-                              setSortDirection(newDirection)
-                              // If using external pagination, notify parent of page change
-                              if (!apiUrl && externalOnPageChange) {
-                                externalOnPageChange(1) // Reset to first page on sort change
-                              }
-                            }}
-                            className="ml-2"
-                          >
-                            {sortBy === header.column.id ? (
-                              sortDirection === 'desc' ? (
-                                <ChevronUp className="inline-block w-4 h-4 rotate-180" />
-                              ) : (
-                                <ChevronDown className="inline-block w-4 h-4 rotate-180" />
-                              )
-                            ) : (
-                              <ChevronUp className="inline-block w-4 h-4 rotate-180" />
-                            )}
-                          </button>
-                        ) : null}
-                      </TableHead>
-                    )
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
 
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="whitespace-nowrap">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="whitespace-nowrap">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                      {header.column.getCanSort() ? (
+                        <button
+                          onClick={() => {
+                            const isAsc =
+                              sortBy === (header.column.id as string) &&
+                              sortDirection === 'asc'
+                            const newDirection = isAsc ? 'desc' : 'asc'
+                            setSortBy(header.column.id as string)
+                            setSortDirection(newDirection)
+                            // If using external pagination, notify parent of page change
+                            if (!apiUrl && externalOnPageChange) {
+                              externalOnPageChange(1) // Reset to first page on sort change
+                            }
+                          }}
+                          className="ml-2"
+                        >
+                          {sortBy === header.column.id ? (
+                            sortDirection === 'desc' ? (
+                              <ChevronUp className="inline-block w-4 h-4 rotate-180" />
+                            ) : (
+                              <ChevronDown className="inline-block w-4 h-4 rotate-180" />
+                            )
+                          ) : (
+                            <ChevronUp className="inline-block w-4 h-4 rotate-180" />
+                          )}
+                        </button>
+                      ) : null}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-muted-foreground text-center"
+                >
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-destructive text-center"
+                >
+                  Error: {error.message}
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="whitespace-nowrap">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }

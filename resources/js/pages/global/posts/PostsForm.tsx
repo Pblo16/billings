@@ -5,7 +5,7 @@ import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { paginated } from '@/routes/api/users'
 import { store } from '@/routes/global/posts'
-import { FormFieldConfig, Posts, SharedData } from '@/types'
+import { FormFieldConfig, Posts, PostsFormData, SharedData } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePage } from '@inertiajs/react'
 import { useForm } from 'react-hook-form'
@@ -16,7 +16,11 @@ const baseFormSchema = z.object({
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
   user_id: z.number(),
-  colaborator: z.number().optional(),
+  colaborators: z
+    .array(
+      z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
+    )
+    .optional(),
 })
 
 const createFormSchema = z.object({
@@ -24,10 +28,12 @@ const createFormSchema = z.object({
   slug: z.string().min(2).max(255),
   text: z.string().optional(),
   user_id: z.number(),
-  colaborator: z.number().optional(),
+  colaborators: z
+    .array(
+      z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
+    )
+    .optional(),
 })
-
-export type PostsFormData = z.infer<typeof baseFormSchema>
 
 const formFieldsConfig: FormFieldConfig[] = [
   {
@@ -56,6 +62,7 @@ const formFieldsConfig: FormFieldConfig[] = [
       edit: 'This is the Slug field.',
     },
     onEditDisabled: true,
+    readOnly: true,
   },
   {
     name: 'text',
@@ -87,9 +94,9 @@ const formFieldsConfig: FormFieldConfig[] = [
   },
 
   {
-    name: 'colaborator',
-    label: 'Colaborator',
-    type: 'select',
+    name: 'colaborators',
+    label: 'Colaborators',
+    type: 'multi-select',
     placeholder: {
       create: 'Search user...',
       edit: 'Search user...',
@@ -98,7 +105,7 @@ const formFieldsConfig: FormFieldConfig[] = [
       create: 'Search and select a user.',
       edit: 'Search and select a user.',
     },
-    searchUrl: paginated().url,
+    searchUrl: paginated({ query: { format: 'combobox' } }).url,
     show: 5, // Mostrar 10 resultados en la búsqueda
   },
 ]
@@ -126,7 +133,11 @@ const PostsForm = ({
       slug: data?.slug || crypto.randomUUID(),
       text: data?.text || '',
       user_id: data?.user_id || auth.user.id,
-      colaborator: data?.colaborator || undefined,
+      colaborators: data?.details
+        ? data.details
+            .map((detail) => detail.colaborator?.id)
+            .filter((id) => typeof id === 'number')
+        : [],
     },
   })
 
