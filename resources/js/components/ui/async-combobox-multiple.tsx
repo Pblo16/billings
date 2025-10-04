@@ -53,6 +53,8 @@ export function AsyncComboboxMultiple({
   const [selectedOptionsCache, setSelectedOptionsCache] = React.useState<
     Map<string, string>
   >(new Map())
+  const [loadingSelectedOptions, setLoadingSelectedOptions] =
+    React.useState(false)
 
   // Determinar si usamos opciones manuales o búsqueda asíncrona
   const useAsyncSearch = !manualOptions && !!searchUrl
@@ -164,6 +166,7 @@ export function AsyncComboboxMultiple({
 
       if (missingValues.length === 0) return
 
+      setLoadingSelectedOptions(true)
       try {
         const url = new URL(searchUrl, window.location.origin)
         url.searchParams.append('ids', missingValues.join(','))
@@ -192,6 +195,8 @@ export function AsyncComboboxMultiple({
         setSelectedOptionsCache(newCache)
       } catch (error) {
         console.error('Error fetching selected options:', error)
+      } finally {
+        setLoadingSelectedOptions(false)
       }
     }
 
@@ -354,20 +359,35 @@ export function AsyncComboboxMultiple({
       {/* Selected items as badges */}
       {stringValues.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {stringValues.map((val) => (
-            <Badge key={val} variant="secondary" className="gap-1">
-              {selectedOptionsCache.get(val) || val}
-              {!readOnly && (
-                <button
-                  type="button"
-                  onClick={(e) => handleRemove(val, e)}
-                  className="hover:bg-muted ml-1 rounded-full"
-                >
-                  <XIcon className="w-3 h-3" />
-                </button>
-              )}
-            </Badge>
-          ))}
+          {loadingSelectedOptions ? (
+            // Mostrar skeletons mientras carga
+            <>
+              {stringValues.map((val) => (
+                <div
+                  key={val}
+                  className="bg-muted rounded-md w-24 h-6 animate-pulse"
+                />
+              ))}
+            </>
+          ) : (
+            // Mostrar badges con los valores
+            <>
+              {stringValues.map((val) => (
+                <Badge key={val} variant="secondary" className="gap-1">
+                  {selectedOptionsCache.get(val) || val}
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleRemove(val, e)}
+                      className="hover:bg-muted ml-1 rounded-full"
+                    >
+                      <XIcon className="w-3 h-3" />
+                    </button>
+                  )}
+                </Badge>
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
