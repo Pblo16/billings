@@ -132,7 +132,7 @@ const PostsForm = ({
       name: data?.name || '',
       slug: data?.slug || crypto.randomUUID(),
       text: data?.text || '',
-      user_id: data?.user_id || auth.user.id,
+      user_id: data?.user?.id || auth.user.id,
       colaborators: data?.details
         ? data.details
             .map((detail) => detail.colaborator?.id)

@@ -15,7 +15,7 @@ import { type NavItem, type NavMainProps } from '@/types'
 import { Link, usePage } from '@inertiajs/react'
 import { CollapsibleContent } from '@radix-ui/react-collapsible'
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export function NavMain({ data }: { data: NavMainProps }) {
   const page = usePage()
@@ -27,44 +27,47 @@ export function NavMain({ data }: { data: NavMainProps }) {
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Helper to build a unique key for each menu/submenu
-  const getMenuKey = (parentKeys: string[], title: string) => {
+  const getMenuKey = useCallback((parentKeys: string[], title: string) => {
     return [...parentKeys, title].join('>')
-  }
+  }, [])
 
   // Helper to check if a menu item or any of its children is active
-  const isItemActive = (item: NavItem): boolean => {
-    const itemHref =
-      typeof item.href === 'string' ? item.href : item.href?.url || ''
-    if (itemHref !== '#' && page.url.startsWith(itemHref)) {
-      return true
-    }
-    if (item.items && item.items.length > 0) {
-      return item.items.some((child) => isItemActive(child))
-    }
-    return false
-  }
+  const isItemActive = useCallback(
+    (item: NavItem): boolean => {
+      const itemHref =
+        typeof item.href === 'string' ? item.href : item.href?.url || ''
+      if (itemHref !== '#' && page.url.startsWith(itemHref)) {
+        return true
+      }
+      if (item.items && item.items.length > 0) {
+        return item.items.some((child) => isItemActive(child))
+      }
+      return false
+    },
+    [page.url],
+  )
 
   // Helper to get all parent keys that should be open based on active route
-  const getActiveMenuKeys = (
-    items: NavItem[],
-    parentKeys: string[] = [],
-  ): string[] => {
-    const activeKeys: string[] = []
-    items.forEach((item) => {
-      const key = getMenuKey(parentKeys, item.title)
-      if (isItemActive(item)) {
-        activeKeys.push(key)
-        if (item.items && item.items.length > 0) {
-          const childKeys = getActiveMenuKeys(item.items, [
-            ...parentKeys,
-            item.title,
-          ])
-          activeKeys.push(...childKeys)
+  const getActiveMenuKeys = useCallback(
+    (items: NavItem[], parentKeys: string[] = []): string[] => {
+      const activeKeys: string[] = []
+      items.forEach((item) => {
+        const key = getMenuKey(parentKeys, item.title)
+        if (isItemActive(item)) {
+          activeKeys.push(key)
+          if (item.items && item.items.length > 0) {
+            const childKeys = getActiveMenuKeys(item.items, [
+              ...parentKeys,
+              item.title,
+            ])
+            activeKeys.push(...childKeys)
+          }
         }
-      }
-    })
-    return activeKeys
-  }
+      })
+      return activeKeys
+    },
+    [getMenuKey, isItemActive],
+  )
 
   // Load persisted state on mount and merge with active route
   useEffect(() => {
@@ -81,7 +84,7 @@ export function NavMain({ data }: { data: NavMainProps }) {
     // Merge persisted state with active state (active state takes precedence)
     setOpenMenus({ ...persistedState, ...activeState })
     setIsInitialized(true)
-  }, [])
+  }, [data.navMain, getActiveMenuKeys])
 
   // Update open menus when route changes
   useEffect(() => {
@@ -97,7 +100,7 @@ export function NavMain({ data }: { data: NavMainProps }) {
         return newState
       })
     }
-  }, [page.url, isInitialized])
+  }, [page.url, isInitialized, data.navMain, getActiveMenuKeys])
 
   // Persist state on change
   useEffect(() => {

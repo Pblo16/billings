@@ -68,7 +68,11 @@ interface RoleFormProps {
   submitButtonText?: string
 }
 
-const renderExtraFields = (form: any) => {
+const RenderExtraFields = ({
+  form,
+}: {
+  form: ReturnType<typeof useForm<RoleFormData>>
+}) => {
   const categories = useFetch<PermissionGroup[]>(permissions().url)
   // Aquí puedes agregar lógica para renderizar campos adicionales según si es edición o creación
   return (
@@ -154,14 +158,13 @@ const RoleForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <FormGrid ext={renderExtraFields(form)}>
+        <FormGrid ext={<RenderExtraFields form={form} />}>
           {formFieldsConfig.map((fieldConfig) => (
             <FormFieldRenderer
               key={fieldConfig.name}
               control={form.control}
               fieldConfig={fieldConfig}
               isEdit={isEdit}
-              errors={form.formState.errors}
             />
           ))}
         </FormGrid>

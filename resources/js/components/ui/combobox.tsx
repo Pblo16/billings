@@ -36,7 +36,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
-  options = options
+  options = options || []
 
   // Convertir el valor externo a string para la comparación
   // Permitir 0 como valor válido, solo rechazar undefined/null

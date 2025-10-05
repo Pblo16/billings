@@ -53,7 +53,6 @@ interface DataTableProps<TData, TValue> {
   onPageChange?: (page: number) => void
   perPage?: string
   setPerPage?: (perPage: string) => void
-  page?: number
   setPage?: (page: number) => void
   // Expose refetch function for actions (like delete, update)
   onRefetch?: (refetch: () => void) => void
@@ -69,7 +68,6 @@ export function DataTable<TData, TValue>({
   onPageChange: externalOnPageChange,
   perPage: externalPerPage,
   setPerPage: externalSetPerPage,
-  page: externalPage,
   setPage: externalSetPage,
   onRefetch,
 }: DataTableProps<TData, TValue>) {

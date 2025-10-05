@@ -26,9 +26,9 @@ const useFetch = <T,>(url: string, options?: AxiosRequestConfig) => {
           ...options,
         })
         setData(response.data as T)
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (axios.isCancel(err)) return
-        setError(err)
+        setError(err as Error)
       } finally {
         setLoading(false)
       }

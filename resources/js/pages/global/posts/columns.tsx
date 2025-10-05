@@ -47,7 +47,7 @@ export const ActionsCell = ({
 
 export const getColumns = (
   options?: GetColumnsOptions,
-): ColumnDef<Posts, any>[] => [
+): ColumnDef<Posts, unknown>[] => [
   {
     accessorKey: 'id',
     header: 'ID',
