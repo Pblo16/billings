@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
+import axios, { AxiosRequestConfig, CancelTokenSource } from 'axios'
 
 // Generic useFetch hook that returns typed data
-const useFetch = <T,>(url: string, options?: RequestInit) => {
+const useFetch = <T,>(url: string, options?: AxiosRequestConfig) => {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
   const [refetchTrigger, setRefetchTrigger] = useState(0)
   const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
-
   const fullUrl = baseUrl + url
 
   const refetch = useCallback(() => {
@@ -15,32 +15,29 @@ const useFetch = <T,>(url: string, options?: RequestInit) => {
   }, [])
 
   useEffect(() => {
-    const controller = new AbortController()
-    const signal = controller.signal
-
+    const source: CancelTokenSource = axios.CancelToken.source()
 
     const fetchData = async () => {
       setLoading(true)
       setError(null)
-
       try {
-        const response = await fetch(fullUrl, { ...options, signal })
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        const result = (await response.json()) as T
-        // throw new Error('Fetch failed')
-        setData(result)
-      } catch (err) {
-        if ((err as any).name === 'AbortError') return
-        setError(err as Error)
+        const response = await axios(fullUrl, {
+          cancelToken: source.token,
+          ...options,
+        })
+        setData(response.data as T)
+      } catch (err: any) {
+        if (axios.isCancel(err)) return
+        setError(err)
       } finally {
         setLoading(false)
       }
     }
     fetchData()
 
-    return () => controller.abort()
+    return () => {
+      source.cancel('Request cancelled')
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullUrl, refetchTrigger])
 

@@ -119,10 +119,12 @@ class PostsController extends Controller
         $query = Posts::query();
         // Include colaborator relationship
         $query->with('details.colaborator');
+        $query->with('user');
         // Apply search filter if provided
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")
-                ->orWhere('user_id', 'like', "%{$search}%");
+                ->orWhere('user_id', 'like', "%{$search}%")
+                ->orWhere('slug', 'like', "%{$search}%");
         }
 
         // Apply sorting if provided

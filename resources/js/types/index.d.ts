@@ -172,12 +172,10 @@ export interface Posts {
     name: string;
     slug: string;
     text?: string;
-    user_id: number;
-    colaborators?: User[]; // Can be ID or User object when relationship is loaded
-    user?: User;
     created_at?: string;
     updated_at?: string;
     details?: { colaborator: User; colaborator_id: number }[];
+    user?: User; // Relación con el autor (usuario)
 }
 
 export interface PostsFormData extends Record<string, unknown> {

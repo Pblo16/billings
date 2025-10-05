@@ -90,7 +90,7 @@ class UsersController extends Controller
         $user->update($updateData);
         $user->syncRoles($roles);
 
-        return redirect()->route('users')->with('success', "User {$user->id} updated successfully");
+        return redirect()->route('users')->with('success', "User {$user->name} updated successfully");
     }
 
     /**
@@ -101,10 +101,10 @@ class UsersController extends Controller
         //
         try {
             $user->delete();
-
-            return back()->with('success', 'User deleted successfully');
+            return back()->with('success', "User {$user->name} deleted successfully");
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
+            dd($e->getMessage());
+            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
     }
 
@@ -129,7 +129,7 @@ class UsersController extends Controller
             $data = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn ($item) => [
+                ->map(fn($item) => [
                     'value' => (string) $item->id,
                     'label' => $item->name,
                 ]);
@@ -137,14 +137,9 @@ class UsersController extends Controller
             return response()->json($data);
         }
 
-        // Default table format - apply sorting if provided
-        if ($sortBy = $request->input('sortBy')) {
-            $sortDirection = $request->input('sortDirection', 'asc');
-            $query->orderBy($sortBy, $sortDirection);
-        } else {
-            // Default sorting
-            $query->orderBy('id', 'asc');
-        }
+        // Default table format - sorting is handled on frontend
+        // Just return data with default ordering by id
+        $query->orderBy('id', 'asc');
 
         if ($request->input('posts') === 'all') {
             $query->with('posts', 'colaboratedPosts');

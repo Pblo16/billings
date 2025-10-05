@@ -17,7 +17,7 @@ function getInitials(nameOrEmail: string | null | undefined) {
 // Actions cell component that can use hooks - exported for use in Index
 export const ActionsCell = ({
   id,
-  onActionSuccess,
+  onActionSuccess = () => {},
   actionsConfig = {},
 }: {
   id: number
@@ -45,7 +45,15 @@ export const ActionsCell = ({
     },
   ]
 
-  return <TableActions actions={actions} onActionSuccess={onActionSuccess} />
+  return (
+    <TableActions
+      actions={actions}
+      onActionSuccess={() => {
+        // This will be called after a successful delete
+        onActionSuccess?.()
+      }}
+    />
+  )
 }
 
 export const getColumns = (

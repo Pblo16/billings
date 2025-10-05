@@ -34,7 +34,15 @@ export const ActionsCell = ({
     },
   ]
 
-  return <TableActions actions={actions} onActionSuccess={onActionSuccess} />
+  return (
+    <TableActions
+      actions={actions}
+      onActionSuccess={() => {
+        // This will be called after a successful delete
+        onActionSuccess?.()
+      }}
+    />
+  )
 }
 
 export const getColumns = (
@@ -49,22 +57,38 @@ export const getColumns = (
     header: 'Name',
   },
   {
-    accessorKey: 'colaborator',
-    header: 'Colaborator',
+    accessorKey: 'user_id',
+    header: 'Author',
     cell: ({ row }) => {
-      const colaborator = row.original.colaborator
-
-      // If colaborator is a User object (relationship loaded), show the name
-      if (typeof colaborator === 'object' && colaborator?.name) {
-        return <span>{colaborator.name}</span>
+      const user = row.original.user?.name
+      // If user is just an ID or null/undefined, show appropriate message
+      console.log('User data in row:', user)
+      if (!user) {
+        return <span>No user</span>
       }
-
+      return <span>{user}</span>
+    },
+  },
+  {
+    header: 'Colaborators',
+    cell: ({ row }) => {
+      const colaborator = row.original.details
       // If colaborator is just an ID or null/undefined, show appropriate message
+
       return (
-        <span>{colaborator ? `ID: ${colaborator}` : 'No colaborator'}</span>
+        <span>
+          {colaborator
+            ? colaborator?.map((colab) => {
+                return (
+                  <div key={colab.colaborator.id}>{colab.colaborator.name}</div>
+                )
+              })
+            : 'No colaborator'}
+        </span>
       )
     },
   },
+
   {
     accessorKey: 'slug',
     header: 'Slug',

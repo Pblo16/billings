@@ -4,6 +4,8 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
 } from '@tanstack/react-table'
 
@@ -71,15 +73,31 @@ export function DataTable<TData, TValue>({
   setPage: externalSetPage,
   onRefetch,
 }: DataTableProps<TData, TValue>) {
-  // Internal state for pagination (used when apiUrl is provided)
+  // Internal state for pagination and fetching
   const [internalPage, setInternalPage] = useState(1)
   const [internalPerPage, setInternalPerPage] = useState('10')
-  const [sortBy, setSortBy] = useState('id')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  // State for local sorting (no server fetch)
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  // Build fetch URL with params (only if using apiUrl)
+  const buildFetchUrl = useCallback(() => {
+    if (!apiUrl) return ''
+    return `${apiUrl}?page=${internalPage}&perPage=${internalPerPage}&search=${encodeURIComponent(debouncedSearch)}`
+  }, [apiUrl, internalPage, internalPerPage, debouncedSearch])
+
+  // Use fetch hook without caching
+  const {
+    data: fetchedData,
+    loading: fetchLoading,
+    error: fetchError,
+    refetch: fetchRefetch,
+  } = useFetch<PaginatedResponse<TData>>(buildFetchUrl())
+
   // Determine which state to use
-  const page = apiUrl ? internalPage : (externalPage ?? 1)
   const perPage = apiUrl ? internalPerPage : (externalPerPage ?? '10')
+
   const setPageFn = useCallback(
     (newPage: number) => {
       if (apiUrl) {
@@ -95,43 +113,59 @@ export function DataTable<TData, TValue>({
     (newPerPage: string) => {
       if (apiUrl) {
         setInternalPerPage(newPerPage)
+        setInternalPage(1) // Reset to first page when changing items per page
       } else if (externalSetPerPage) {
         externalSetPerPage(newPerPage)
       }
     },
     [apiUrl, externalSetPerPage],
   )
-  // Fetch data if apiUrl is provided
-  const fetchUrl = apiUrl
-    ? `${apiUrl}?page=${page}&perPage=${perPage}&sortBy=${sortBy}&sortDirection=${sortDirection}&search=${encodeURIComponent(search)}`
-    : ''
-  const fetchResult = useFetch<PaginatedResponse<TData>>(fetchUrl)
 
-  // Expose refetch to parent if callback provided (only once on mount)
+  // Debounce search input
   useEffect(() => {
-    if (onRefetch && apiUrl && fetchResult.refetch) {
-      onRefetch(fetchResult.refetch)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onRefetch, apiUrl])
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPageFn(1) // Reset to first page on search
+    }, 500)
 
-  // Determine final data, loading, and error states
-  const data = apiUrl ? fetchResult.data : externalData
-  const loading = apiUrl ? fetchResult.loading : externalLoading
-  const error = apiUrl ? fetchResult.error : externalError
+    return () => clearTimeout(timer)
+  }, [search, setPageFn])
+
+  // Expose refetch to parent
+  useEffect(() => {
+    if (onRefetch && apiUrl) {
+      // When parent calls refetch, force refresh without cache
+      onRefetch(() => {
+        fetchRefetch()
+      })
+    }
+  }, [onRefetch, apiUrl, fetchRefetch])
+
+  // Determine final data state
+  const finalData = apiUrl ? fetchedData : externalData
+  const finalLoading = apiUrl ? fetchLoading : externalLoading
+  const finalError = apiUrl ? fetchError : externalError
 
   // Normalize data: rows for the table and paginated metadata if present
-  const isArrayData = Array.isArray(data)
+  const isArrayData = Array.isArray(finalData)
   const paginated =
-    !isArrayData && data ? (data as PaginatedResponse<TData>) : null
+    !isArrayData && finalData ? (finalData as PaginatedResponse<TData>) : null
   const rowsData: TData[] = isArrayData
-    ? (data as TData[])
+    ? (finalData as TData[])
     : (paginated?.data ?? [])
 
+  // Setup table with local sorting
   const table = useReactTable({
     data: rowsData,
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    // Enable sorting toggle without clearing (always asc <-> desc)
+    enableSortingRemoval: false,
   })
 
   // Handle page change
@@ -147,20 +181,16 @@ export function DataTable<TData, TValue>({
   )
 
   // Handle search change
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setSearch(value)
-      setPageFn(1) // Reset to first page on search
-    },
-    [setPageFn],
-  )
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value)
+  }, [])
 
   return (
     <div className="flex flex-col px-4 pt-4 rounded-md w-full h-full">
       <header className="flex lg:flex-row flex-col lg:justify-between lg:items-center gap-4 mb-2 pb-4 border-b">
         {/* Left section: Per page selector and count */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
-          {loading && !paginated ? (
+          {finalLoading && !paginated ? (
             <>
               <div className="bg-muted rounded-md w-full sm:w-[100px] h-10 animate-pulse" />
               <div className="bg-muted rounded w-48 h-4 animate-pulse" />
@@ -202,7 +232,7 @@ export function DataTable<TData, TValue>({
         </div>
         {/* Right section: Pagination and actions */}
         <div className="flex sm:flex-row flex-col sm:items-center gap-3 sm:gap-4">
-          {loading && !paginated ? (
+          {finalLoading && !paginated ? (
             <div className="bg-muted rounded-md w-64 h-10 animate-pulse" />
           ) : paginated ? (
             <AppPaginator
@@ -234,41 +264,31 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const isSorted = header.column.getIsSorted()
                   return (
                     <TableHead key={header.id} className="whitespace-nowrap">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                      {header.column.getCanSort() ? (
-                        <button
-                          onClick={() => {
-                            const isAsc =
-                              sortBy === (header.column.id as string) &&
-                              sortDirection === 'asc'
-                            const newDirection = isAsc ? 'desc' : 'asc'
-                            setSortBy(header.column.id as string)
-                            setSortDirection(newDirection)
-                            // If using external pagination, notify parent of page change
-                            if (!apiUrl && externalOnPageChange) {
-                              externalOnPageChange(1) // Reset to first page on sort change
-                            }
-                          }}
-                          className="ml-2"
-                        >
-                          {sortBy === header.column.id ? (
-                            sortDirection === 'desc' ? (
-                              <ChevronUp className="inline-block w-4 h-4 rotate-180" />
+                      <div className="flex items-center">
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                        {header.column.getCanSort() && (
+                          <button
+                            onClick={header.column.getToggleSortingHandler()}
+                            className="hover:opacity-70 ml-2 transition-opacity"
+                          >
+                            {isSorted === 'desc' ? (
+                              <ChevronDown className="inline-block w-4 h-4" />
+                            ) : isSorted === 'asc' ? (
+                              <ChevronUp className="inline-block w-4 h-4" />
                             ) : (
-                              <ChevronDown className="inline-block w-4 h-4 rotate-180" />
-                            )
-                          ) : (
-                            <ChevronUp className="inline-block w-4 h-4 rotate-180" />
-                          )}
-                        </button>
-                      ) : null}
+                              <ChevronUp className="inline-block opacity-30 w-4 h-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </TableHead>
                   )
                 })}
@@ -276,7 +296,7 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {finalLoading ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
@@ -285,13 +305,13 @@ export function DataTable<TData, TValue>({
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : error ? (
+            ) : finalError ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
                   className="h-24 text-destructive text-center"
                 >
-                  Error: {error.message}
+                  Error: {finalError.message}
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
