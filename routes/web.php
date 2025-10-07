@@ -16,6 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    Route::delete('users/batch-delete', [UsersController::class, 'batchDelete'])->name('users.batchDelete');
+
     Route::resource('users', UsersController::class)->names([
         'index' => 'users',
         'create' => 'users.create',
@@ -25,6 +27,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'users.update',
         'destroy' => 'users.destroy',
     ]);
+
+    Route::delete('admin/security/role/batch-delete', [RoleController::class, 'batchDelete'])->name('admin.security.role.batchDelete');
 
     Route::resource('admin/security/role', RoleController::class)->names([
         'index' => 'admin.security.role',
@@ -47,5 +51,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ]);
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

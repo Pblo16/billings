@@ -106,8 +106,23 @@ class UsersController extends Controller
         } catch (\Exception $e) {
             dd($e->getMessage());
 
-            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
+            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
+    }
+    /**
+     * Batch delete users.
+     */
+    public function batchDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No user IDs provided for deletion');
+        }
+
+        User::destroy($ids);
+
+        return back()->with('success', "Users deleted successfully");
     }
 
     public function paginatedUsers(Request $request)
@@ -131,7 +146,7 @@ class UsersController extends Controller
             $data = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn ($item) => [
+                ->map(fn($item) => [
                     'value' => (string) $item->id,
                     'label' => $item->name,
                 ]);

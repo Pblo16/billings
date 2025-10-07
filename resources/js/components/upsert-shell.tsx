@@ -4,7 +4,6 @@ import React from 'react'
 import AppForm from './app-form'
 
 interface UpsertShellProps {
-  title?: string
   breadcrumbs?: BreadcrumbItem[]
   mode?: 'create' | 'edit'
   data?: Record<string, unknown>
@@ -14,7 +13,6 @@ interface UpsertShellProps {
 }
 
 const UpsertShell = ({
-  title,
   breadcrumbs = [],
   mode = 'create',
   data,
@@ -23,7 +21,6 @@ const UpsertShell = ({
   submitButtonText,
 }: UpsertShellProps) => {
   const isEdit = mode === 'edit'
-  const computedTitle = title ?? (isEdit ? 'Edit' : 'Create')
   const computedSubmit = submitButtonText
     ? submitButtonText(isEdit)
     : isEdit
@@ -39,10 +36,7 @@ const UpsertShell = ({
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <AppForm>
-        <h1>{computedTitle}</h1>
-        {children}
-      </AppForm>
+      <AppForm className="max-w-3xl">{children}</AppForm>
     </AppLayout>
   )
 }

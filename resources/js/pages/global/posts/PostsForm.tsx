@@ -1,5 +1,4 @@
 import FormGrid from '@/components/form-grid'
-import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
@@ -162,9 +161,6 @@ const PostsForm = ({
             />
           ))}
         </FormGrid>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
-        </Button>
       </form>
     </Form>
   )

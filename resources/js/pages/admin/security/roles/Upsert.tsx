@@ -1,4 +1,3 @@
-import AppForm from '@/components/app-form'
 import UpsertShell from '@/components/upsert-shell'
 import { role } from '@/routes/admin/security/'
 import { BreadcrumbItem, Role } from '@/types'
@@ -26,16 +25,13 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
 
   return (
     <UpsertShell
-      title={isEdit ? 'Edit Role' : 'Create Role'}
       breadcrumbs={pageCrumbs}
       mode={mode}
       data={data as unknown as Record<string, unknown>}
       childPropName="role"
       submitButtonText={(edit) => (edit ? 'Update Role' : 'Create Role')}
     >
-      <AppForm>
-        <RoleForm isEdit={isEdit} data={data ?? null} />
-      </AppForm>
+      <RoleForm isEdit={isEdit} data={data ?? null} />
     </UpsertShell>
   )
 }

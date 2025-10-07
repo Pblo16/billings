@@ -79,7 +79,6 @@ const RenderExtraFields = ({
     <>
       {categories.data && categories.data.length > 0 && (
         <div className="">
-          <h3 className="mb-4 font-medium text-lg">Permissions</h3>
           <FormField
             control={form.control}
             name="permissions"
@@ -90,7 +89,7 @@ const RenderExtraFields = ({
                     <h4 className="mb-2 font-semibold text-md">
                       {group.category}
                     </h4>
-                    <div className="gap-4 grid grid-cols-3">
+                    <div className="gap-4 grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))]">
                       {group.permissions.map((permission) => (
                         <FormItem
                           key={permission.id}
@@ -132,12 +131,16 @@ const RenderExtraFields = ({
   )
 }
 
-const RoleForm = ({
-  data,
-  isEdit = false,
-  onSubmit,
-  submitButtonText = 'Submit',
-}: RoleFormProps) => {
+const renderExtraActions = () => {
+  return (
+    <Button
+      type="reset"
+      className="col-span-2 px-3 py-1 w-full text-sm"
+    ></Button>
+  )
+}
+
+const RoleForm = ({ data, isEdit = false, onSubmit }: RoleFormProps) => {
   const formSchema = isEdit ? baseFormSchema : createFormSchema
 
   const form = useForm<RoleFormData>({
@@ -158,7 +161,10 @@ const RoleForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <FormGrid ext={<RenderExtraFields form={form} />}>
+        <FormGrid
+          ext={<RenderExtraFields form={form} />}
+          actions={[renderExtraActions()]}
+        >
           {formFieldsConfig.map((fieldConfig) => (
             <FormFieldRenderer
               key={fieldConfig.name}
@@ -168,9 +174,6 @@ const RoleForm = ({
             />
           ))}
         </FormGrid>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
-        </Button>
       </form>
     </Form>
   )

@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout'
 import { getColumns } from '@/pages/users/columns'
 import { users } from '@/routes'
 import { paginated } from '@/routes/api/users'
-import { create } from '@/routes/users'
+import { batchDelete, create } from '@/routes/users'
 import { type BreadcrumbItem } from '@/types'
 import { useRef } from 'react'
 
@@ -26,7 +26,7 @@ const UsersIndex = () => {
   const refetchRef = useRef<(() => void) | null>(null)
 
   // Configurar columnas con refetch y opciones de acciones
-  const columns = getColumns({
+  const columnsOptions = {
     onActionSuccess: () => {
       // Call refetch from DataTable when action succeeds
       refetchRef.current?.()
@@ -35,13 +35,20 @@ const UsersIndex = () => {
       canEdit: true,
       canDelete: true,
     },
-  })
+    batchDelete: {
+      enabled: true,
+      deleteUrl: batchDelete().url,
+    },
+  }
+
+  const columns = getColumns(columnsOptions)
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <DataTable
         apiUrl={paginated().url}
         columns={columns}
+        columnsOptions={columnsOptions}
         header={headerActions}
         onRefetch={(refetch) => {
           // Store refetch function for use in column actions

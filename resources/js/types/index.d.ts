@@ -205,6 +205,11 @@ export interface GetColumnsOptions {
         canDelete?: boolean
     }
     sortable?: boolean
+    batchDelete?: {
+        enabled: boolean
+        deleteUrl?: string // URL endpoint for batch delete (e.g., '/api/roles/batch-delete')
+        onDelete?: (ids: number[]) => void // Optional custom handler
+    }
 }
 
 export interface ComboboxOption {

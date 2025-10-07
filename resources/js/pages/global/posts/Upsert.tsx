@@ -1,4 +1,3 @@
-import AppForm from '@/components/app-form'
 import UpsertShell from '@/components/upsert-shell'
 import { posts } from '@/routes/global/'
 import { BreadcrumbItem, Posts } from '@/types'
@@ -26,16 +25,13 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
 
   return (
     <UpsertShell
-      title={isEdit ? 'Edit Posts' : 'Create Posts'}
       breadcrumbs={pageCrumbs}
       mode={mode}
       data={data as unknown as Record<string, unknown>}
       childPropName="posts"
       submitButtonText={(edit) => (edit ? 'Update Posts' : 'Create Posts')}
     >
-      <AppForm>
-        <PostsForm isEdit={isEdit} data={data ?? null} />
-      </AppForm>
+      <PostsForm isEdit={isEdit} data={data ?? null} />
     </UpsertShell>
   )
 }
