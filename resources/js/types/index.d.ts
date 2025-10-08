@@ -103,7 +103,7 @@ export interface PostsFormData extends Record<string, unknown> {
 export interface FormFieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select' | 'multi-select' | 'textarea' | 'file';
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select' | 'multi-select' | 'textarea' | 'file' | 'image';
     placeholder: {
         create: string;
         edit: string;

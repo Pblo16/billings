@@ -29,6 +29,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Image Storage Disk
+    |--------------------------------------------------------------------------
+    | Specify which disk should be used for storing user-uploaded images.
+    | Use 'public' for local testing and 'backblaze' for production.
+    |
+    */
+
+    'images_disk' => env('IMAGES_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -80,6 +91,14 @@ return [
             'bucket' => env('B2_BUCKET'),
             'endpoint' => env('B2_ENDPOINT'),
             'use_path_style_endpoint' => true,
+        ],
+
+        'imagekit' => [
+            'driver' => 's3',
+            'public_key' => env('IMAGEKIT_PUBLIC_KEY'),
+            'private_key' => env('IMAGEKIT_PRIVATE_KEY'),
+            'url_endpoint' => env('IMAGEKIT_URL_ENDPOINT'),
+            'report' => false,
         ],
     ],
 

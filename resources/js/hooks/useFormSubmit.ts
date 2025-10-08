@@ -15,6 +15,54 @@ const hasFileUpload = (values: Record<string, unknown>): boolean => {
 }
 
 /**
+ * Lista de campos que típicamente contienen archivos
+ */
+const FILE_FIELD_PATTERNS = ['cv', 'avatar', 'image', 'file', 'document', 'attachment', 'photo']
+
+/**
+ * Verifica si un campo es un campo de archivo basado en su nombre
+ */
+const isFileField = (key: string): boolean => {
+  const lowerKey = key.toLowerCase()
+  return FILE_FIELD_PATTERNS.some(pattern =>
+    lowerKey === pattern ||
+    lowerKey.endsWith(`_${pattern}`) ||
+    lowerKey.endsWith(`${pattern}s`)
+  )
+}
+
+/**
+ * Limpia los valores del formulario removiendo campos de archivo que no han cambiado
+ * (son strings con URLs/paths en lugar de File objects)
+ */
+const cleanFormValues = (values: Record<string, unknown>): Record<string, unknown> => {
+  const cleaned: Record<string, unknown> = {}
+
+  Object.entries(values).forEach(([key, value]) => {
+    // Si es un File object, siempre incluirlo
+    if (value instanceof File) {
+      cleaned[key] = value
+    }
+    // Si es un campo de archivo pero es string (URL existente), omitirlo
+    else if (isFileField(key) && typeof value === 'string') {
+      // No incluir: es una URL de archivo existente, no un archivo nuevo
+      return
+    }
+    // Si es null en un campo de archivo, omitirlo también
+    else if (isFileField(key) && value === null) {
+      // No incluir: no hay archivo nuevo
+      return
+    }
+    // Para todos los demás casos, incluir el valor si no es vacío
+    else if (value !== null && value !== undefined && value !== '') {
+      cleaned[key] = value
+    }
+  })
+
+  return cleaned
+}
+
+/**
  * Convierte los valores a FormData si contienen archivos
  */
 const toFormData = (values: Record<string, unknown>): FormData => {
@@ -29,13 +77,6 @@ const toFormData = (values: Record<string, unknown>): FormData => {
         formData.append(`${key}[${index}]`, String(item))
       })
     } else if (value !== null && value !== undefined && value !== '') {
-      // No agregar campos de archivo que sean strings (paths de archivos existentes)
-      // Solo agregamos el valor si no es un campo que típicamente contiene archivos
-      // o si es un File object (ya manejado arriba)
-      if (typeof value === 'string' && (key === 'cv' || key.endsWith('_file') || key.endsWith('_document'))) {
-        // Omitir: es un path de archivo existente, no un archivo nuevo
-        return
-      }
       formData.append(key, String(value))
     }
   })
@@ -53,9 +94,12 @@ export const useFormSubmit = <T extends Record<string, unknown> = Record<string,
     if (onSubmit) {
       onSubmit(values)
     } else {
+      // Limpiar valores: remover campos de archivo que no han cambiado (strings con URLs)
+      const cleanedValues = cleanFormValues(values)
+
       // Detectar si hay archivos y convertir a FormData
-      const hasFiles = hasFileUpload(values)
-      const data = hasFiles ? toFormData(values) : values
+      const hasFiles = hasFileUpload(cleanedValues)
+      const data = hasFiles ? toFormData(cleanedValues) : cleanedValues
 
       // Default behavior
       if (isEdit && entityId) {

@@ -198,6 +198,7 @@ const renderInputByType = <T extends FieldValues>(
     case 'multi-select':
       return renderMultiSelectInput(field, fieldConfig, isEdit)
     case 'file':
+    case 'image':
       return renderFileInput(field, fieldConfig, isEdit, onDeleteFile)
     default:
       return renderStandardInput(field, fieldConfig, isEdit)

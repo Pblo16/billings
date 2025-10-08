@@ -23,6 +23,7 @@ const baseFormSchema = z.object({
     )
     .optional(),
   cv: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
+  avatar: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
 })
 
 const createFormSchema = z.object({
@@ -38,6 +39,7 @@ const createFormSchema = z.object({
     )
     .optional(),
   cv: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
+  avatar: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
 })
 
 const formFieldsConfig: FormFieldConfig[] = [
@@ -110,6 +112,19 @@ const formFieldsConfig: FormFieldConfig[] = [
     description: { create: 'Upload the user CV.', edit: 'Update the user CV.' },
     optional: true,
   },
+  {
+    name: 'avatar',
+    label: 'Avatar',
+    type: 'image',
+    optional: true,
+    placeholder: { create: 'Upload Avatar', edit: 'Update Avatar' },
+    description: {
+      create: 'Upload the user avatar.',
+      edit: 'Update the user avatar.',
+    },
+    maxFileSizeMB: 5,
+    mimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
+  },
 ]
 
 interface UserFormProps {
@@ -135,6 +150,7 @@ const UserForm = ({
       password: data?.password || '',
       roles: data?.roles?.map((role) => role.id) || undefined,
       cv: data?.documents?.[0]?.path || undefined,
+      avatar: data?.avatar || undefined,
     },
   })
 
@@ -156,6 +172,14 @@ const UserForm = ({
           user: data.id,
           document: data.documents[0].id,
         }),
+      }
+    }
+    // Enriquecer el campo 'avatar' con la URL existente
+    if (fieldConfig.name === 'avatar' && data?.avatar) {
+      return {
+        ...fieldConfig,
+        existingFileUrl: data.avatar,
+        existingFileName: 'Avatar',
       }
     }
     return fieldConfig

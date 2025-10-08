@@ -72,9 +72,9 @@ class UsersController extends Controller
     {
         // Load roles relationship for the user
         $user->load('roles');
-
+        $cv = $user->documentRelations()->where('relation_type', 'cv')->with('document')->get()->pluck('document');
         // Transform documents to include URLs
-        $transformedDocuments = $user->documents->map(function ($doc) {
+        $transformedDocuments = $cv->map(function ($doc) {
             // Usar el disco almacenado en el documento
             $disk = Storage::disk($doc->disk ?? 'public');
 
@@ -94,6 +94,30 @@ class UsersController extends Controller
         // Replace documents collection with transformed array
         $userData = $user->toArray();
         $userData['documents'] = $transformedDocuments;
+
+        $avatar = $user->documents->map(function ($doc) {
+            // Usar el disco almacenado en el documento
+            $disk = Storage::disk($doc->disk ?? 'public');
+
+            // Generar URL según el tipo de disco
+            $url = $this->getDocumentUrl($disk, $doc);
+
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'path' => $doc->path,
+                'url' => $url,
+                'mime_type' => $doc->mime_type,
+                'size' => $doc->size,
+            ];
+        })->toArray();
+
+        if (count($avatar) > 0) {
+            $userData['avatar'] = $avatar[0]['url'];
+        } else {
+            $userData['avatar'] = null;
+        }
+
         return Inertia::render('users/Upsert', [
             'data' => $userData,
             'mode' => 'edit',
@@ -113,6 +137,7 @@ class UsersController extends Controller
             'email' => 'required|email|max:255',
             'password' => 'nullable|string|min:8',
             'cv' => 'sometimes|nullable|file|mimes:pdf|max:15000', // max 15MB
+            'avatar' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // max 5MB
         ]);
 
         $updateData = [
@@ -136,6 +161,15 @@ class UsersController extends Controller
                 relationType: 'cv',
                 storagePath: 'cvs',
                 disk: config('filesystems.documents_disk')
+            );
+        }
+        if ($request->hasFile('avatar')) {
+            $this->replaceDocument(
+                file: $request->file('avatar'),
+                relatedModel: $user,
+                relationType: 'avatar',
+                storagePath: 'avatars',
+                disk: config('filesystems.images_disk')
             );
         }
 
