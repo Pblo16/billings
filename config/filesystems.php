@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Document Storage Disk
+    |--------------------------------------------------------------------------
+    |
+    | Specify which disk should be used for storing user documents (CVs, etc).
+    | Use 'public' for local testing and 'backblaze' for production.
+    |
+    */
+
+    'documents_disk' => env('DOCUMENTS_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -41,7 +53,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
@@ -60,6 +72,15 @@ return [
             'report' => false,
         ],
 
+        'backblaze' => [
+            'driver' => 's3',
+            'key' => env('B2_KEY_ID'),
+            'secret' => env('B2_APPLICATION_KEY'),
+            'region' => env('B2_REGION'),
+            'bucket' => env('B2_BUCKET'),
+            'endpoint' => env('B2_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+        ],
     ],
 
     /*

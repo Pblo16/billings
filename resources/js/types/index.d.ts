@@ -14,6 +14,7 @@ export interface User {
     password?: string | null;
     roles?: Role[]; // Spatie roles relationship
     [key: string]: unknown; // This allows for additional properties...
+    documents?: Document[]; // Array of associated documents
 }
 
 export interface UserMethods extends User {
@@ -29,6 +30,16 @@ export interface UserFormData extends Record<string, unknown> {
     email: string;
     password?: string;
     roles?: (number | string)[]; // Array of role IDs (can be string or number from API)
+    documents?: Document[]; // Array of associated documents
+}
+
+export interface Document {
+    id: number;
+    name: string;
+    path: string;
+    mime_type: string;
+    size: number;
+    url?: string; // Temporary URL for viewing the document
 }
 
 // Role-related types
@@ -89,7 +100,7 @@ export interface PostsFormData extends Record<string, unknown> {
 export interface FormFieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select' | 'multi-select';
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'phone' | 'select' | 'multi-select' | 'textarea' | 'file';
     placeholder: {
         create: string;
         edit: string;
@@ -125,6 +136,11 @@ export interface FormFieldConfig {
     rowspan?: number; // Number of rows to span in a grid layout
     onEditDisabled?: boolean;
     show?: number;
+    mimeTypes?: string[]; // Allowed MIME types for file inputs
+    maxFileSizeMB?: number; // Maximum file size in MB
+    existingFileName?: string; // Name of existing file to display
+    existingFileUrl?: string; // URL to view existing file
+    deleteUrl?: string; // URL to delete existing file
 }
 
 // Navigation-related types

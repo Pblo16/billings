@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\HandlesDocuments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class UsersController extends Controller
 {
+    use HandlesDocuments;
     /**
      * Display a listing of the resource.
      */
@@ -36,6 +40,7 @@ class UsersController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
+            'cv' => 'nullable|file|mimes:pdf|max:5120', // max 5MB
         ]);
 
         $model = User::create([
@@ -45,6 +50,17 @@ class UsersController extends Controller
         ]);
 
         $model->assignRole($roles);
+
+        // Handle CV file upload
+        if ($request->hasFile('cv')) {
+            $this->uploadDocument(
+                file: $request->file('cv'),
+                relatedModel: $model,
+                relationType: 'cv',
+                storagePath: 'cvs',
+                disk: config('filesystems.documents_disk')
+            );
+        }
 
         return redirect()->route('users')->with('success', 'User created successfully');
     }
@@ -56,9 +72,32 @@ class UsersController extends Controller
     {
         // Load roles relationship for the user
         $user->load('roles');
+        $user->load('documents');
+
+        // Transform documents to include URLs
+        $transformedDocuments = $user->documents->map(function ($doc) {
+            // Usar el disco almacenado en el documento
+            $disk = Storage::disk($doc->disk ?? 'public');
+
+            // Generar URL según el tipo de disco
+            $url = $this->getDocumentUrl($disk, $doc);
+
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'path' => $doc->path,
+                'url' => $url,
+                'mime_type' => $doc->mime_type,
+                'size' => $doc->size,
+            ];
+        })->toArray();
+
+        // Replace documents collection with transformed array
+        $userData = $user->toArray();
+        $userData['documents'] = $transformedDocuments;
 
         return Inertia::render('users/Upsert', [
-            'data' => $user,
+            'data' => $userData,
             'mode' => 'edit',
         ]);
     }
@@ -75,6 +114,7 @@ class UsersController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'password' => 'nullable|string|min:8',
+            'cv' => 'nullable|file|mimes:pdf|max:15000', // max 15MB
         ]);
 
         $updateData = [
@@ -89,6 +129,17 @@ class UsersController extends Controller
 
         $user->update($updateData);
         $user->syncRoles($roles);
+
+        // Handle CV file upload - replace existing if present
+        if ($request->hasFile('cv')) {
+            $this->replaceDocument(
+                file: $request->file('cv'),
+                relatedModel: $user,
+                relationType: 'cv',
+                storagePath: 'cvs',
+                disk: config('filesystems.documents_disk')
+            );
+        }
 
         return redirect()->route('users')->with('success', "User {$user->name} updated successfully");
     }
@@ -164,11 +215,34 @@ class UsersController extends Controller
         if ($request->input('colaborator') === 'all') {
             $query->with('colaboratedPosts');
         }
+        if ($request->input('roles') === 'all') {
+            $query->with('roles');
+        }
+        if ($request->input('documents') === 'all') {
+            $query->with('documents');
+        }
 
         // Paginate the results for table
         $perPage = $request->input('perPage', 10);
         $data = $query->paginate($perPage);
 
         return response()->json($data);
+    }
+
+    /**
+     * Delete a document from a user
+     */
+    public function deleteDocument(User $user, $documentId)
+    {
+        // Obtener el documento para saber qué disco usar
+        $document = \App\Models\Document::find($documentId);
+        $disk = $document?->disk ?? 'public';
+
+        return $this->deleteDocumentFromModel(
+            relatedModel: $user,
+            documentId: $documentId,
+            relationType: 'cv', // Optional: filter by CV type only
+            disk: $disk
+        );
     }
 }

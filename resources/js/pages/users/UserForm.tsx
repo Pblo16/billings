@@ -21,6 +21,7 @@ const baseFormSchema = z.object({
       z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
     )
     .optional(),
+  cv: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
 })
 
 const createFormSchema = z.object({
@@ -35,6 +36,7 @@ const createFormSchema = z.object({
       z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
     )
     .optional(),
+  cv: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
 })
 
 const formFieldsConfig: FormFieldConfig[] = [
@@ -94,6 +96,19 @@ const formFieldsConfig: FormFieldConfig[] = [
     searchUrl: rolesApi({ query: { format: 'combobox' } }).url,
     show: 5,
   },
+  {
+    name: 'cv',
+    label: 'CV',
+    type: 'file',
+    mimeTypes: ['application/pdf'],
+    maxFileSizeMB: 10,
+    placeholder: {
+      create: 'Upload CV',
+      edit: 'Update CV',
+    },
+    description: { create: 'Upload the user CV.', edit: 'Update the user CV.' },
+    optional: true,
+  },
 ]
 
 interface UserFormProps {
@@ -118,6 +133,7 @@ const UserForm = ({
       email: data?.email || '',
       password: data?.password || '',
       roles: data?.roles?.map((role) => role.id) || undefined,
+      cv: data?.documents?.[0]?.path || undefined,
     },
   })
 
@@ -128,6 +144,20 @@ const UserForm = ({
     entityPath: store().url,
   })
 
+  // Enriquecer la configuración del campo 'cv' con datos del documento existente
+  const enrichedFormFields = formFieldsConfig.map((fieldConfig) => {
+    if (fieldConfig.name === 'cv' && data?.documents?.[0]) {
+      console.log(data.documents[0].url)
+      return {
+        ...fieldConfig,
+        existingFileName: data.documents[0].name,
+        existingFileUrl: data.documents[0].url,
+        deleteUrl: `/users/${data.id}/documents/${data.documents[0].id}`,
+      }
+    }
+    return fieldConfig
+  })
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
@@ -135,7 +165,7 @@ const UserForm = ({
           isSubmitting={form.formState.isSubmitting}
           submitButtonText={submitButtonText}
         >
-          {formFieldsConfig.map((fieldConfig) => (
+          {enrichedFormFields.map((fieldConfig) => (
             <FormFieldRenderer
               key={fieldConfig.name}
               control={form.control}

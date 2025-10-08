@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::delete('users/batch-delete', [UsersController::class, 'batchDelete'])->name('users.batchDelete');
+    Route::delete('users/{user}/documents/{document}', [UsersController::class, 'deleteDocument'])->name('users.documents.delete');
 
     Route::resource('users', UsersController::class)->names([
         'index' => 'users',

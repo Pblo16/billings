@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Global\Posts;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -80,5 +81,22 @@ class User extends Authenticatable
     public function colaboratedPosts()
     {
         return $this->hasMany(\App\Models\Global\PostDetails::class, 'colaborator_id');
+    }
+
+    public function documentRelations(): MorphMany
+    {
+        return $this->morphMany(DocumentRelation::class, 'related');
+    }
+
+    public function documents()
+    {
+        return $this->hasManyThrough(
+            Document::class,
+            DocumentRelation::class,
+            'related_id',
+            'id',
+            'id',
+            'document_id'
+        )->where('document_relations.related_type', self::class);
     }
 }
