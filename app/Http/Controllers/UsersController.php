@@ -72,7 +72,6 @@ class UsersController extends Controller
     {
         // Load roles relationship for the user
         $user->load('roles');
-        $user->load('documents');
 
         // Transform documents to include URLs
         $transformedDocuments = $user->documents->map(function ($doc) {
@@ -95,7 +94,6 @@ class UsersController extends Controller
         // Replace documents collection with transformed array
         $userData = $user->toArray();
         $userData['documents'] = $transformedDocuments;
-
         return Inertia::render('users/Upsert', [
             'data' => $userData,
             'mode' => 'edit',
@@ -114,7 +112,7 @@ class UsersController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'password' => 'nullable|string|min:8',
-            'cv' => 'nullable|file|mimes:pdf|max:15000', // max 15MB
+            'cv' => 'sometimes|nullable|file|mimes:pdf|max:15000', // max 15MB
         ]);
 
         $updateData = [

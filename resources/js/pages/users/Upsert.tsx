@@ -26,7 +26,7 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
     <UpsertShell
       breadcrumbs={pageCrumbs}
       mode={mode}
-      data={data}
+      data={data as unknown as Record<string, unknown>}
       childPropName="user"
       submitButtonText={(edit) => (edit ? 'Update User' : 'Create User')}
     >

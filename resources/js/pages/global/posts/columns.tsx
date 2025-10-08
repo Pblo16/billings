@@ -62,7 +62,6 @@ export const getColumns = (
     cell: ({ row }) => {
       const user = row.original.user?.name
       // If user is just an ID or null/undefined, show appropriate message
-      console.log('User data in row:', user)
       if (!user) {
         return <span>No user</span>
       }

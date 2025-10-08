@@ -4,6 +4,7 @@ import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { paginated as rolesApi } from '@/routes/api/security/roles'
 import { store } from '@/routes/users'
+import { deleteMethod } from '@/routes/users/documents'
 import { FormFieldConfig, UserFormData, UserWithAvatar } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -147,12 +148,14 @@ const UserForm = ({
   // Enriquecer la configuración del campo 'cv' con datos del documento existente
   const enrichedFormFields = formFieldsConfig.map((fieldConfig) => {
     if (fieldConfig.name === 'cv' && data?.documents?.[0]) {
-      console.log(data.documents[0].url)
       return {
         ...fieldConfig,
         existingFileName: data.documents[0].name,
         existingFileUrl: data.documents[0].url,
-        deleteUrl: `/users/${data.id}/documents/${data.documents[0].id}`,
+        deleteUrl: deleteMethod.url({
+          user: data.id,
+          document: data.documents[0].id,
+        }),
       }
     }
     return fieldConfig

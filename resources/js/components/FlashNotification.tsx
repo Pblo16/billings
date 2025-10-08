@@ -16,7 +16,6 @@ const FlashNotification: React.FC<FlashNotificationProps> = ({
   const [visible, setVisible] = useState(true)
   const [message, setMessage] = useState<string | null>(null)
   const [type, setType] = useState<string>('success')
-  console.log('FlashNotification render', { flash, message, type })
   useEffect(() => {
     if (flash) {
       const keys = Object.keys(flash)

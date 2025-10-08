@@ -49,7 +49,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'edit' => 'global.posts.edit',
         'update' => 'global.posts.update',
         'destroy' => 'global.posts.destroy',
+
     ]);
+    Route::delete('global/posts/{post}/documents/{document}', [PostsController::class, 'deleteDocument'])->name('posts.documents.delete');
 });
 
 require __DIR__ . '/settings.php';

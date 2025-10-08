@@ -16,6 +16,7 @@ import {
   Control,
   ControllerRenderProps,
   FieldError,
+  FieldErrors,
   FieldValues,
   Path,
 } from 'react-hook-form'
@@ -29,7 +30,7 @@ interface FormFieldRendererProps<T extends FieldValues> {
   control: Control<T>
   fieldConfig: FormFieldConfig
   isEdit?: boolean
-  errors?: Partial<Record<keyof T, FieldError>>
+  errors?: FieldErrors<Record<keyof T, FieldError>>
 }
 
 /**

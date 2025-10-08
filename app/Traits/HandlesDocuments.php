@@ -54,13 +54,13 @@ trait HandlesDocuments
   }
 
   /**
-   * Delete a document from a model
+   * Delete a document from a model and remove it from storage.
    *
-   * @param Model $relatedModel The model the document is attached to
+   * @param \Illuminate\Database\Eloquent\Model $relatedModel The model the document is attached to
    * @param int|string $documentId The document ID to delete
    * @param string|null $relationType Optional: filter by relation type
    * @param string $disk The storage disk (default: 'public')
-   * @return RedirectResponse
+   * @return \Illuminate\Http\RedirectResponse
    */
   protected function deleteDocumentFromModel(
     Model $relatedModel,
@@ -69,40 +69,46 @@ trait HandlesDocuments
     string $disk = 'public'
   ): RedirectResponse {
     try {
-      // Construir query para buscar la relación
+      // Buscar relación del documento con el modelo
       $query = DocumentRelation::where('related_type', get_class($relatedModel))
         ->where('related_id', $relatedModel->id)
         ->where('document_id', $documentId);
 
-      // Filtrar por tipo de relación si se especifica
       if ($relationType) {
         $query->where('relation_type', $relationType);
       }
 
       $documentRelation = $query->first();
 
-      if (!$documentRelation) {
+      if (! $documentRelation) {
         return back()->with('error', 'Document not found');
       }
 
       $document = $documentRelation->document;
 
-      // Eliminar archivo físico del storage
-      if ($document && Storage::disk($disk)->exists($document->path)) {
-        Storage::disk($disk)->delete($document->path);
-      }
-
-      // Eliminar relación y documento
-      $documentRelation->delete();
       if ($document) {
+        // Determinar disco del documento (prioriza el almacenado en BD)
+        $activeDisk = $document->disk ?? $disk;
+
+        // Eliminar archivo físico del storage (Backblaze / S3 / local)
+        $storage = Storage::disk($activeDisk);
+        if ($storage->exists($document->path)) {
+          $storage->delete($document->path);
+        }
+
+        // Eliminar documento y relación
+        $documentRelation->delete();
         $document->delete();
+      } else {
+        $documentRelation->delete();
       }
 
       return back()->with('success', 'Document deleted successfully');
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
       return back()->with('error', 'Failed to delete document: ' . $e->getMessage());
     }
   }
+
 
   /**
    * Replace an existing document with a new one

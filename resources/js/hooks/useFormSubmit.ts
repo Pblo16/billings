@@ -29,6 +29,13 @@ const toFormData = (values: Record<string, unknown>): FormData => {
         formData.append(`${key}[${index}]`, String(item))
       })
     } else if (value !== null && value !== undefined && value !== '') {
+      // No agregar campos de archivo que sean strings (paths de archivos existentes)
+      // Solo agregamos el valor si no es un campo que típicamente contiene archivos
+      // o si es un File object (ya manejado arriba)
+      if (typeof value === 'string' && (key === 'cv' || key.endsWith('_file') || key.endsWith('_document'))) {
+        // Omitir: es un path de archivo existente, no un archivo nuevo
+        return
+      }
       formData.append(key, String(value))
     }
   })

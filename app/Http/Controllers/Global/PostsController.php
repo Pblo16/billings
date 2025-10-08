@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Global;
 
 use App\Http\Controllers\Controller;
 use App\Models\Global\Posts;
+use App\Traits\HandlesDocuments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PostsController extends Controller
 {
+    use HandlesDocuments;
+
     /**
      * Display a listing of the resource.
      */
@@ -41,11 +45,23 @@ class PostsController extends Controller
             'slug' => 'required|string|max:255|unique:posts',
             'text' => 'nullable|string',
             'user_id' => 'required|integer',
+            'article' => 'sometimes|nullable|file|mimes:pdf,doc,docx|max:20000', // max 20MB
         ]);
         $posts = Posts::create($validated);
         // Attach colaborators
         foreach ($colaborators as $colaboratorId) {
             $posts->details()->create(['colaborator_id' => $colaboratorId]);
+        }
+
+        // Handle article file upload - replace existing if present
+        if ($request->hasFile('article')) {
+            $this->replaceDocument(
+                file: $request->file('article'),
+                relatedModel: $posts,
+                relationType: 'article',
+                storagePath: 'articles',
+                disk: config('filesystems.documents_disk')
+            );
         }
 
         return redirect()->route('global.posts')->with('success', 'Registro creado exitosamente.');
@@ -66,6 +82,25 @@ class PostsController extends Controller
     {
         $data = Posts::with('details.colaborator')->findOrFail($id);
 
+        // Transform documents to include URLs
+        $transformedDocuments = $data->documents->map(function ($doc) {
+            // Usar el disco almacenado en el documento
+            $disk = Storage::disk($doc->disk ?? 'public');
+
+            // Generar URL según el tipo de disco
+            $url = $this->getDocumentUrl($disk, $doc);
+
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'path' => $doc->path,
+                'url' => $url,
+                'mime_type' => $doc->mime_type,
+                'size' => $doc->size,
+            ];
+        })->toArray();
+        $data = $data->toArray();
+        $data['documents'] = $transformedDocuments;
         return Inertia::render('global/posts/Upsert', [
             'data' => $data,
             'mode' => 'edit',
@@ -83,6 +118,7 @@ class PostsController extends Controller
             'name' => 'required|string|max:255',
             'text' => 'nullable|string',
             'user_id' => 'required|integer',
+            'article' => 'sometimes|nullable|file|mimes:pdf,doc,docx|max:20000', // max 20MB
         ]);
         $data = Posts::findOrFail($id);
         $data->update($validated);
@@ -91,6 +127,17 @@ class PostsController extends Controller
         $data->details()->delete();
         foreach ($colaborators as $colaboratorId) {
             $data->details()->create(['colaborator_id' => $colaboratorId]);
+        }
+
+        // Handle article file upload - replace existing if present
+        if ($request->hasFile('article')) {
+            $this->replaceDocument(
+                file: $request->file('article'),
+                relatedModel: $data,
+                relationType: 'article',
+                storagePath: 'articles',
+                disk: config('filesystems.documents_disk')
+            );
         }
 
         return redirect()->route('global.posts')->with('success', 'Registro actualizado exitosamente.');
@@ -105,7 +152,7 @@ class PostsController extends Controller
             $data = Posts::findOrFail($id);
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
         }
 
         return redirect()->route('global.posts')->with('success', 'Registro eliminado exitosamente.');
@@ -141,5 +188,22 @@ class PostsController extends Controller
         $posts = $query->paginate($perPage);
 
         return response()->json($posts);
+    }
+
+    /**
+     * Delete a document from a post
+     */
+    public function deleteDocument(Posts $post, $documentId)
+    {
+        // Obtener el documento para saber qué disco usar
+        $document = \App\Models\Document::find($documentId);
+        $disk = $document?->disk ?? 'public';
+
+        return $this->deleteDocumentFromModel(
+            relatedModel: $post,
+            documentId: $documentId,
+            relationType: 'article', // Optional: filter by article type only
+            disk: $disk
+        );
     }
 }

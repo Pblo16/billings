@@ -86,6 +86,8 @@ export interface Posts {
     updated_at?: string;
     details?: { colaborator: User; colaborator_id: number }[];
     user?: User; // Relación con el autor (usuario)pnp
+    documents?: Document[]; // Array of associated documents
+
 }
 
 export interface PostsFormData extends Record<string, unknown> {
@@ -94,6 +96,7 @@ export interface PostsFormData extends Record<string, unknown> {
     text?: string;
     user_id: number;
     details?: { colaborator_id: number }[];
+    documents?: Document[]; // Array of associated documents
 }
 
 // Form field configuration
