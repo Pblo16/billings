@@ -15,6 +15,7 @@ export interface User {
     roles?: Role[]; // Spatie roles relationship
     [key: string]: unknown; // This allows for additional properties...
     documents?: Document[]; // Array of associated documents
+
 }
 
 export interface UserMethods extends User {

@@ -253,10 +253,58 @@ class UsersController extends Controller
         if ($request->input('documents') === 'all') {
             $query->with('documents');
         }
+        $includeDocumentRelations = $request->input('document_relations') === 'all';
+        if ($includeDocumentRelations) {
+            // Load all document relations with their documents when explicitly requested
+            $query->with('documentRelations.document');
+        } else {
+            // Otherwise, only load the avatar relation to compute the avatar URL
+            $query->with(['documentRelations' => function ($q) {
+                $q->where('relation_type', 'avatar')->with('document');
+            }]);
+        }
 
         // Paginate the results for table
-        $perPage = $request->input('perPage', 10);
-        $data = $query->paginate($perPage);
+        if ($request->input('paginate') === 'true') {
+            $perPage = $request->input('perPage', 10);
+            $data = $query->paginate($perPage);
+            // Append avatar URL to each user in the paginated collection
+            $data->getCollection()->transform(function (User $user) use ($includeDocumentRelations) {
+                // Prefer the avatar relation if available
+                $relation = method_exists($user->documentRelations, 'firstWhere')
+                    ? $user->documentRelations->firstWhere('relation_type', 'avatar')
+                    : $user->documentRelations->first();
+                if ($relation && $relation->document) {
+                    $doc = $relation->document;
+                    $disk = Storage::disk($doc->disk ?? 'public');
+                    $user->setAttribute('avatar', $this->getDocumentUrl($disk, $doc));
+                } else {
+                    $user->setAttribute('avatar', null);
+                }
+                // Hide documentRelations unless explicitly requested
+                if (! $includeDocumentRelations) {
+                    $user->unsetRelation('documentRelations');
+                }
+                return $user;
+            });
+        } else {
+            $data = $query->get()->map(function (User $user) use ($includeDocumentRelations) {
+                $relation = method_exists($user->documentRelations, 'firstWhere')
+                    ? $user->documentRelations->firstWhere('relation_type', 'avatar')
+                    : $user->documentRelations->first();
+                if ($relation && $relation->document) {
+                    $doc = $relation->document;
+                    $disk = Storage::disk($doc->disk ?? 'public');
+                    $user->setAttribute('avatar', $this->getDocumentUrl($disk, $doc));
+                } else {
+                    $user->setAttribute('avatar', null);
+                }
+                if (! $includeDocumentRelations) {
+                    $user->unsetRelation('documentRelations');
+                }
+                return $user;
+            });
+        }
 
         return response()->json($data);
     }
