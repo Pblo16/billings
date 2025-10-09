@@ -38,11 +38,13 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles',
         ]);
         $validated['guard_name'] = $guard_name;
-
-        $role = Role::create($validated);
-        $role->permissions()->sync($permissions);
-
-        return redirect()->route('admin.security.role')->with('success', 'Registro creado exitosamente.');
+        try {
+            $role = Role::create($validated);
+            $role->permissions()->sync($permissions);
+            return redirect()->route('admin.security.role')->with('success', 'Registro creado exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al crear: ' . $e->getMessage()])->withInput();
+        }
     }
 
     /**
@@ -53,16 +55,37 @@ class RoleController extends Controller
         //
     }
 
+    public function batchDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json(['error' => 'No se proporcionaron IDs válidos.'], 400);
+        }
+
+        try {
+            // Prevent deleting super-admin role
+            $rolesToDelete = Role::whereIn('id', $ids)->where('name', '!=', 'super-admin')->get();
+            $deletedCount = $rolesToDelete->count();
+            Role::whereIn('id', $rolesToDelete->pluck('id'))->delete();
+
+            return redirect()->back()->with(['message' => "$deletedCount registros eliminados exitosamente."]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()])->withInput();
+        }
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
         $data = Role::with('permissions')->findOrFail($id);
-
+        // Prevent editing super-admin
+        if ($data->name === 'super-admin') {
+            return redirect()->route('admin.security.role')->withErrors(['error' => 'No se puede editar el rol super-admin.']);
+        }
         // Add permissions array to the data
         $data->permissions_ids = $data->permissions->pluck('id')->toArray();
-
         return Inertia::render('admin/security/roles/Upsert', [
             'data' => $data,
             'mode' => 'edit',
@@ -78,10 +101,15 @@ class RoleController extends Controller
         $guard_name = $request->input('guard_name', 'web'); // Default to 'web' if not provided
         $validated['guard_name'] = $guard_name;
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,'.$id,
-        ]);
         $data = Role::findOrFail($id);
+        // Prevent updating super-admin
+        if ($data->name === 'super-admin') {
+            return redirect()->route('admin.security.role')->withErrors(['error' => 'No se puede actualizar el rol super-admin.']);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+        ]);
         $data->update($validated);
         $data->permissions()->sync($permissions);
 
@@ -95,11 +123,14 @@ class RoleController extends Controller
     {
         try {
             $data = Role::findOrFail($id);
+            // Prevent deleting super-admin
+            if ($data->name === 'super-admin') {
+                return redirect()->route('admin.security.role')->withErrors(['error' => 'No se puede eliminar el rol super-admin.']);
+            }
             $data->delete();
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
         }
-
         return redirect()->route('admin.security.role')->with('success', 'Registro eliminado exitosamente.');
     }
 
@@ -107,20 +138,28 @@ class RoleController extends Controller
     {
         $query = Role::query();
 
+        $searchingById = false;
         // Handle ID-specific search (for combobox selected value retrieval)
         if ($id = $request->input('id')) {
             $query->where('id', $id);
+            $searchingById = true;
         }
 
         // Handle multiple IDs search (for multi-select combobox)
         if ($ids = $request->input('ids')) {
             $idsArray = is_array($ids) ? $ids : explode(',', $ids);
             $query->whereIn('id', $idsArray);
+            $searchingById = true;
         }
 
         // Apply search filter if provided
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%");
+        }
+
+        // Exclude super-admin unless searching by ID/IDs
+        if (!$searchingById) {
+            $query->where('name', '!=', 'super-admin');
         }
 
         // Handle combobox format request
@@ -129,7 +168,7 @@ class RoleController extends Controller
             $data = $query->select('id', 'name')
                 ->limit($perPage)
                 ->get()
-                ->map(fn ($item) => [
+                ->map(fn($item) => [
                     'value' => (string) $item->id,
                     'label' => $item->name,
                 ]);

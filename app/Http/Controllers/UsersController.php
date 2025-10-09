@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\HandlesDocuments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class UsersController extends Controller
 {
+    use HandlesDocuments;
     /**
      * Display a listing of the resource.
      */
@@ -36,6 +40,7 @@ class UsersController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
+            'cv' => 'nullable|file|mimes:pdf|max:5120', // max 5MB
         ]);
 
         $model = User::create([
@@ -45,6 +50,17 @@ class UsersController extends Controller
         ]);
 
         $model->assignRole($roles);
+
+        // Handle CV file upload
+        if ($request->hasFile('cv')) {
+            $this->uploadDocument(
+                file: $request->file('cv'),
+                relatedModel: $model,
+                relationType: 'cv',
+                storagePath: 'cvs',
+                disk: config('filesystems.documents_disk')
+            );
+        }
 
         return redirect()->route('users')->with('success', 'User created successfully');
     }
@@ -56,9 +72,54 @@ class UsersController extends Controller
     {
         // Load roles relationship for the user
         $user->load('roles');
+        $cv = $user->documentRelations()->where('relation_type', 'cv')->with('document')->get()->pluck('document');
+        // Transform documents to include URLs
+        $transformedDocuments = $cv->map(function ($doc) {
+            // Usar el disco almacenado en el documento
+            $disk = Storage::disk($doc->disk ?? 'public');
+
+            // Generar URL según el tipo de disco
+            $url = $this->getDocumentUrl($disk, $doc);
+
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'path' => $doc->path,
+                'url' => $url,
+                'mime_type' => $doc->mime_type,
+                'size' => $doc->size,
+            ];
+        })->toArray();
+
+        // Replace documents collection with transformed array
+        $userData = $user->toArray();
+        $userData['documents'] = $transformedDocuments;
+
+        $avatar = $user->documents->map(function ($doc) {
+            // Usar el disco almacenado en el documento
+            $disk = Storage::disk($doc->disk ?? 'public');
+
+            // Generar URL según el tipo de disco
+            $url = $this->getDocumentUrl($disk, $doc);
+
+            return [
+                'id' => $doc->id,
+                'name' => $doc->name,
+                'path' => $doc->path,
+                'url' => $url,
+                'mime_type' => $doc->mime_type,
+                'size' => $doc->size,
+            ];
+        })->toArray();
+
+        if (count($avatar) > 0) {
+            $userData['avatar'] = $avatar[0]['url'];
+        } else {
+            $userData['avatar'] = null;
+        }
 
         return Inertia::render('users/Upsert', [
-            'data' => $user,
+            'data' => $userData,
             'mode' => 'edit',
         ]);
     }
@@ -75,6 +136,8 @@ class UsersController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'password' => 'nullable|string|min:8',
+            'cv' => 'sometimes|nullable|file|mimes:pdf|max:15000', // max 15MB
+            'avatar' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // max 5MB
         ]);
 
         $updateData = [
@@ -90,6 +153,26 @@ class UsersController extends Controller
         $user->update($updateData);
         $user->syncRoles($roles);
 
+        // Handle CV file upload - replace existing if present
+        if ($request->hasFile('cv')) {
+            $this->replaceDocument(
+                file: $request->file('cv'),
+                relatedModel: $user,
+                relationType: 'cv',
+                storagePath: 'cvs',
+                disk: config('filesystems.documents_disk')
+            );
+        }
+        if ($request->hasFile('avatar')) {
+            $this->replaceDocument(
+                file: $request->file('avatar'),
+                relatedModel: $user,
+                relationType: 'avatar',
+                storagePath: 'avatars',
+                disk: config('filesystems.images_disk')
+            );
+        }
+
         return redirect()->route('users')->with('success', "User {$user->name} updated successfully");
     }
 
@@ -101,11 +184,28 @@ class UsersController extends Controller
         //
         try {
             $user->delete();
+
             return back()->with('success', "User {$user->name} deleted successfully");
         } catch (\Exception $e) {
             dd($e->getMessage());
+
             return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
         }
+    }
+    /**
+     * Batch delete users.
+     */
+    public function batchDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No user IDs provided for deletion');
+        }
+
+        User::destroy($ids);
+
+        return back()->with('success', "Users deleted successfully");
     }
 
     public function paginatedUsers(Request $request)
@@ -147,11 +247,82 @@ class UsersController extends Controller
         if ($request->input('colaborator') === 'all') {
             $query->with('colaboratedPosts');
         }
+        if ($request->input('roles') === 'all') {
+            $query->with('roles');
+        }
+        if ($request->input('documents') === 'all') {
+            $query->with('documents');
+        }
+        $includeDocumentRelations = $request->input('document_relations') === 'all';
+        if ($includeDocumentRelations) {
+            // Load all document relations with their documents when explicitly requested
+            $query->with('documentRelations.document');
+        } else {
+            // Otherwise, only load the avatar relation to compute the avatar URL
+            $query->with(['documentRelations' => function ($q) {
+                $q->where('relation_type', 'avatar')->with('document');
+            }]);
+        }
 
         // Paginate the results for table
-        $perPage = $request->input('perPage', 10);
-        $data = $query->paginate($perPage);
+        if ($request->input('paginate') === 'true') {
+            $perPage = $request->input('perPage', 10);
+            $data = $query->paginate($perPage);
+            // Append avatar URL to each user in the paginated collection
+            $data->getCollection()->transform(function (User $user) use ($includeDocumentRelations) {
+                // Prefer the avatar relation if available
+                $relation = method_exists($user->documentRelations, 'firstWhere')
+                    ? $user->documentRelations->firstWhere('relation_type', 'avatar')
+                    : $user->documentRelations->first();
+                if ($relation && $relation->document) {
+                    $doc = $relation->document;
+                    $disk = Storage::disk($doc->disk ?? 'public');
+                    $user->setAttribute('avatar', $this->getDocumentUrl($disk, $doc));
+                } else {
+                    $user->setAttribute('avatar', null);
+                }
+                // Hide documentRelations unless explicitly requested
+                if (! $includeDocumentRelations) {
+                    $user->unsetRelation('documentRelations');
+                }
+                return $user;
+            });
+        } else {
+            $data = $query->get()->map(function (User $user) use ($includeDocumentRelations) {
+                $relation = method_exists($user->documentRelations, 'firstWhere')
+                    ? $user->documentRelations->firstWhere('relation_type', 'avatar')
+                    : $user->documentRelations->first();
+                if ($relation && $relation->document) {
+                    $doc = $relation->document;
+                    $disk = Storage::disk($doc->disk ?? 'public');
+                    $user->setAttribute('avatar', $this->getDocumentUrl($disk, $doc));
+                } else {
+                    $user->setAttribute('avatar', null);
+                }
+                if (! $includeDocumentRelations) {
+                    $user->unsetRelation('documentRelations');
+                }
+                return $user;
+            });
+        }
 
         return response()->json($data);
+    }
+
+    /**
+     * Delete a document from a user
+     */
+    public function deleteDocument(User $user, $documentId)
+    {
+        // Obtener el documento para saber qué disco usar
+        $document = \App\Models\Document::find($documentId);
+        $disk = $document?->disk ?? 'public';
+
+        return $this->deleteDocumentFromModel(
+            relatedModel: $user,
+            documentId: $documentId,
+            relationType: 'cv', // Optional: filter by CV type only
+            disk: $disk
+        );
     }
 }

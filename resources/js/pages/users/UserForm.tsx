@@ -1,10 +1,10 @@
 import FormGrid from '@/components/form-grid'
-import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import FormFieldRenderer from '@/components/ui/form-field-renderer'
 import { useFormSubmit } from '@/hooks/useFormSubmit'
 import { paginated as rolesApi } from '@/routes/api/security/roles'
 import { store } from '@/routes/users'
+import { deleteMethod } from '@/routes/users/documents'
 import { FormFieldConfig, UserFormData, UserWithAvatar } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -22,6 +22,8 @@ const baseFormSchema = z.object({
       z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
     )
     .optional(),
+  cv: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
+  avatar: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
 })
 
 const createFormSchema = z.object({
@@ -36,6 +38,8 @@ const createFormSchema = z.object({
       z.union([z.number(), z.string().transform((val) => parseInt(val, 10))]),
     )
     .optional(),
+  cv: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
+  avatar: z.union([z.instanceof(File), z.string(), z.null()]).optional(),
 })
 
 const formFieldsConfig: FormFieldConfig[] = [
@@ -95,6 +99,32 @@ const formFieldsConfig: FormFieldConfig[] = [
     searchUrl: rolesApi({ query: { format: 'combobox' } }).url,
     show: 5,
   },
+  {
+    name: 'cv',
+    label: 'CV',
+    type: 'file',
+    mimeTypes: ['application/pdf'],
+    maxFileSizeMB: 10,
+    placeholder: {
+      create: 'Upload CV',
+      edit: 'Update CV',
+    },
+    description: { create: 'Upload the user CV.', edit: 'Update the user CV.' },
+    optional: true,
+  },
+  {
+    name: 'avatar',
+    label: 'Avatar',
+    type: 'image',
+    optional: true,
+    placeholder: { create: 'Upload Avatar', edit: 'Update Avatar' },
+    description: {
+      create: 'Upload the user avatar.',
+      edit: 'Update the user avatar.',
+    },
+    maxFileSizeMB: 5,
+    mimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
+  },
 ]
 
 interface UserFormProps {
@@ -119,6 +149,8 @@ const UserForm = ({
       email: data?.email || '',
       password: data?.password || '',
       roles: data?.roles?.map((role) => role.id) || undefined,
+      cv: data?.documents?.[0]?.path || undefined,
+      avatar: data?.avatar || undefined,
     },
   })
 
@@ -129,11 +161,38 @@ const UserForm = ({
     entityPath: store().url,
   })
 
+  // Enriquecer la configuración del campo 'cv' con datos del documento existente
+  const enrichedFormFields = formFieldsConfig.map((fieldConfig) => {
+    if (fieldConfig.name === 'cv' && data?.documents?.[0]) {
+      return {
+        ...fieldConfig,
+        existingFileName: data.documents[0].name,
+        existingFileUrl: data.documents[0].url,
+        deleteUrl: deleteMethod.url({
+          user: data.id,
+          document: data.documents[0].id,
+        }),
+      }
+    }
+    // Enriquecer el campo 'avatar' con la URL existente
+    if (fieldConfig.name === 'avatar' && data?.avatar) {
+      return {
+        ...fieldConfig,
+        existingFileUrl: data.avatar,
+        existingFileName: 'Avatar',
+      }
+    }
+    return fieldConfig
+  })
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <FormGrid>
-          {formFieldsConfig.map((fieldConfig) => (
+        <FormGrid
+          isSubmitting={form.formState.isSubmitting}
+          submitButtonText={submitButtonText}
+        >
+          {enrichedFormFields.map((fieldConfig) => (
             <FormFieldRenderer
               key={fieldConfig.name}
               control={form.control}
@@ -143,9 +202,6 @@ const UserForm = ({
             />
           ))}
         </FormGrid>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Saving...' : submitButtonText}
-        </Button>
       </form>
     </Form>
   )

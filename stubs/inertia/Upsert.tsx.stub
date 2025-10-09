@@ -26,7 +26,6 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
 
   return (
     <UpsertShell
-      title={isEdit ? 'Edit {{name}}' : 'Create {{name}}'}
       breadcrumbs={pageCrumbs}
       mode={mode}
       data={data}
@@ -35,9 +34,7 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
         edit ? 'Update {{name}}' : 'Create {{name}}'
       }
     >
-      <AppForm>
         <{{name}}Form isEdit={isEdit} data={data} />
-      </AppForm>
     </UpsertShell>
   )
 }

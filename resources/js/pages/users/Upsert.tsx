@@ -1,4 +1,3 @@
-import AppForm from '@/components/app-form'
 import UpsertShell from '@/components/upsert-shell'
 import { BreadcrumbItem, UserWithAvatar } from '@/types'
 import UserForm from './UserForm'
@@ -25,14 +24,13 @@ const Upsert = ({ data, mode = 'create' }: UpsertProps) => {
 
   return (
     <UpsertShell
-      title={isEdit ? 'Edit User' : 'Create User'}
       breadcrumbs={pageCrumbs}
       mode={mode}
-      data={data}
+      data={data as unknown as Record<string, unknown>}
       childPropName="user"
       submitButtonText={(edit) => (edit ? 'Update User' : 'Create User')}
     >
-      <AppForm>{<UserForm isEdit={isEdit} data={data ?? null} />}</AppForm>
+      <UserForm isEdit={isEdit} data={data ?? null} />
     </UpsertShell>
   )
 }

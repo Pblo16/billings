@@ -15,12 +15,16 @@ interface AppActionAlertProps {
   open: boolean
   setOpen: (open: boolean) => void
   onSuccess?: () => void
+  title?: string
+  description?: string
 }
 const AppActionAlert = ({
   query,
   open,
   setOpen,
   onSuccess,
+  title = 'Are you absolutely sure?',
+  description = 'This action cannot be undone. This will permanently delete this remove data from our servers.',
 }: AppActionAlertProps) => {
   const handleDelete = (query: string) => {
     router.delete(query, {
@@ -35,11 +39,8 @@ const AppActionAlert = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this
-            remove data from our servers.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={() => setOpen(false)}>
@@ -49,6 +50,9 @@ const AppActionAlert = ({
             onClick={() => {
               if (query) {
                 handleDelete(query)
+              } else {
+                // If no query provided, call onSuccess directly (for batch delete)
+                onSuccess?.()
               }
               setOpen(false)
             }}

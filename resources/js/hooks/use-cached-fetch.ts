@@ -134,7 +134,7 @@ export const useCachedFetch = <T,>(
         setData(result)
         saveToCache(fullUrl, result)
       } catch (err) {
-        if ((err as any).name === 'AbortError') return
+        if (err instanceof Error && err.name === 'AbortError') return
         setError(err as Error)
       } finally {
         setLoading(false)
