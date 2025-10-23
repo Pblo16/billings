@@ -25,13 +25,18 @@ WORKFLOW_RUN=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
 if [ "$WORKFLOW_RUN" = "null" ] || [ -z "$WORKFLOW_RUN" ]; then
   echo "ERROR: No successful CI workflow run found for branch ${BRANCH}"
   echo "DEBUG: Checking recent workflow runs..."
+  echo "DEBUG: API Response:"
   curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-    "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=5" \
-    | jq -r '.workflow_runs[] | "\(.name) - \(.status) - \(.conclusion) - \(.head_branch)"'
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=5" | jq '.'
+  echo ""
+  echo "DEBUG: Available workflows:"
+  curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=10" \
+    | jq -r '.workflow_runs[] | "ID: \(.id) | Name: \(.name) | Branch: \(.head_branch) | Status: \(.status) | Conclusion: \(.conclusion) | Created: \(.created_at)"'
   exit 1
 fi
 
-echo "[assets] Found workflow run: $WORKFLOW_RUN"
+echo "[assets] Found workflow run ID: $WORKFLOW_RUN"
 
 # Obtener el artifact ID
 ARTIFACT_ID=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \

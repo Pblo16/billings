@@ -4,7 +4,11 @@ set -euo pipefail
 cd /var/www/html
 
 echo "[deploy] Downloading frontend assets from GitHub Actions..."
-bash /var/www/html/scripts/download-assets.sh
+if ! bash /var/www/html/scripts/download-assets.sh; then
+  echo "[deploy] FATAL: Failed to download frontend assets"
+  echo "[deploy] Cannot proceed without assets. Deployment aborted."
+  exit 1
+fi
 
 echo "[deploy] Installing Composer dependencies (no-dev, optimized autoloader)"
 composer install --no-interaction --no-dev --prefer-dist --no-progress --optimize-autoloader
