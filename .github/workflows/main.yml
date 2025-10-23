@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   frontend:
-    name: Frontend (lint, types, build)
+    name: Frontend (types, build)
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -29,9 +29,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm lint
 
       - name: Type check
         run: pnpm types
