@@ -16,23 +16,38 @@ fi
 
 BRANCH="${RENDER_GIT_BRANCH:-master}"
 echo "[assets] Looking for workflow runs on branch: $BRANCH"
+echo "[assets] Repository: ${GITHUB_REPOSITORY}"
+echo "[assets] Token length: ${#GITHUB_TOKEN} characters"
+
+# Debug: Mostrar workflows recientes ANTES de buscar
+echo "[assets] DEBUG: Fetching recent workflows from GitHub..."
+RECENT_WORKFLOWS=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+  "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=5")
+
+echo "[assets] DEBUG: Recent workflows:"
+echo "$RECENT_WORKFLOWS" | jq -r '.workflow_runs[]? | "  - \(.name) | Branch: \(.head_branch) | Status: \(.status) | Conclusion: \(.conclusion)"'
 
 # Obtener el último workflow run exitoso del branch actual
-WORKFLOW_RUN=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-  "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?branch=${BRANCH}&status=success&event=push&per_page=5" \
-  | jq -r '.workflow_runs[] | select(.name == "CI") | .id' | head -n 1)
+echo "[assets] Searching for successful 'CI' workflow on branch '${BRANCH}' with event 'push'..."
+WORKFLOW_RUN=$(echo "$RECENT_WORKFLOWS" | jq -r ".workflow_runs[] | select(.name == \"CI\" and .head_branch == \"${BRANCH}\" and .status == \"completed\" and .conclusion == \"success\") | .id" | head -n 1)
 
 if [ "$WORKFLOW_RUN" = "null" ] || [ -z "$WORKFLOW_RUN" ]; then
-  echo "ERROR: No successful CI workflow run found for branch ${BRANCH}"
-  echo "DEBUG: Checking recent workflow runs..."
-  echo "DEBUG: API Response:"
-  curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-    "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=5" | jq '.'
   echo ""
-  echo "DEBUG: Available workflows:"
+  echo "========================================="
+  echo "ERROR: No matching CI workflow found!"
+  echo "========================================="
+  echo "Searched for:"
+  echo "  - Workflow name: CI"
+  echo "  - Branch: ${BRANCH}"
+  echo "  - Status: completed"
+  echo "  - Conclusion: success"
+  echo ""
+  echo "Available workflows (last 10):"
   curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
     "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=10" \
-    | jq -r '.workflow_runs[] | "ID: \(.id) | Name: \(.name) | Branch: \(.head_branch) | Status: \(.status) | Conclusion: \(.conclusion) | Created: \(.created_at)"'
+    | jq -r '.workflow_runs[]? | "  [\(.id)] \(.name) - \(.head_branch) - \(.status)/\(.conclusion) - \(.event)"'
+  echo ""
+  echo "========================================="
   exit 1
 fi
 
