@@ -6,10 +6,18 @@ cd /var/www/html
 echo "[deploy] Downloading frontend assets from GitHub Actions..."
 if ! bash /var/www/html/scripts/download-assets.sh; then
   echo "[deploy] FATAL: Failed to download frontend assets"
-  echo "[deploy] Cannot proceed without assets. Deployment aborted."
-  exit 1
+  echo "[deploy] Exit code: $?"
+  echo "[deploy] Retrying asset download..."
+  
+  # Retry once
+  if ! bash /var/www/html/scripts/download-assets.sh; then
+    echo "[deploy] FATAL: Asset download failed after retry"
+    echo "[deploy] Cannot proceed without assets. Deployment aborted."
+    exit 1
+  fi
 fi
 
+echo "[deploy] Assets successfully downloaded!"
 echo "[deploy] Installing Composer dependencies (no-dev, optimized autoloader)"
 composer install --no-interaction --no-dev --prefer-dist --no-progress --optimize-autoloader
 
