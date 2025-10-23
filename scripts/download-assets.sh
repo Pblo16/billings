@@ -25,10 +25,10 @@ RECENT_WORKFLOWS=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
   "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=5")
 
 echo "[assets] DEBUG: Recent workflows:"
-echo "$RECENT_WORKFLOWS" | jq -r '.workflow_runs[]? | "  - \(.name) | Branch: \(.head_branch) | Status: \(.status) | Conclusion: \(.conclusion)"'
+echo "$RECENT_WORKFLOWS" | jq -r '.workflow_runs[]? | "  - \(.name) | Branch: \(.head_branch) | Status: \(.status) | Conclusion: \(.conclusion) | Event: \(.event) | ID: \(.id)"'
 
 # Obtener el último workflow run exitoso del branch actual
-echo "[assets] Searching for successful 'CI' workflow on branch '${BRANCH}' with event 'push'..."
+echo "[assets] Searching for successful 'CI' workflow on branch '${BRANCH}' (any event)..."
 WORKFLOW_RUN=$(echo "$RECENT_WORKFLOWS" | jq -r ".workflow_runs[] | select(.name == \"CI\" and .head_branch == \"${BRANCH}\" and .status == \"completed\" and .conclusion == \"success\") | .id" | head -n 1)
 
 if [ "$WORKFLOW_RUN" = "null" ] || [ -z "$WORKFLOW_RUN" ]; then
