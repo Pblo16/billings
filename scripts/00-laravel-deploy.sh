@@ -3,6 +3,9 @@ set -euo pipefail
 
 cd /var/www/html
 
+echo "[deploy] Downloading frontend assets from GitHub Actions..."
+bash /var/www/html/scripts/download-assets.sh
+
 echo "[deploy] Installing Composer dependencies (no-dev, optimized autoloader)"
 composer install --no-interaction --no-dev --prefer-dist --no-progress --optimize-autoloader
 

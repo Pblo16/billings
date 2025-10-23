@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   frontend:
-    name: Frontend (types, build)
+    name: Frontend (build)
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -41,7 +41,7 @@ jobs:
           path: public/build
 
   backend:
-    name: Backend (tests, optimize)
+    name: Backend (tests)
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -84,9 +84,6 @@ jobs:
           else
             php artisan test
           fi
-
-      - name: Optimize (cache config, routes, events, views)
-        run: php artisan optimize
 
       - name: Upload storage logs on failure
         if: failure()
