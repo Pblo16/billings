@@ -4,14 +4,19 @@ set -euo pipefail
 cd /var/www/html
 
 echo "[deploy] Downloading frontend assets from GitHub Actions..."
-if ! bash /var/www/html/scripts/download-assets.sh; then
-  echo "[deploy] FATAL: Failed to download frontend assets"
-  echo "[deploy] Exit code: $?"
+bash /var/www/html/scripts/download-assets.sh
+DOWNLOAD_EXIT_CODE=$?
+
+if [ $DOWNLOAD_EXIT_CODE -ne 0 ]; then
+  echo "[deploy] FATAL: Failed to download frontend assets (exit code: $DOWNLOAD_EXIT_CODE)"
   echo "[deploy] Retrying asset download..."
   
   # Retry once
-  if ! bash /var/www/html/scripts/download-assets.sh; then
-    echo "[deploy] FATAL: Asset download failed after retry"
+  bash /var/www/html/scripts/download-assets.sh
+  DOWNLOAD_EXIT_CODE=$?
+  
+  if [ $DOWNLOAD_EXIT_CODE -ne 0 ]; then
+    echo "[deploy] FATAL: Asset download failed after retry (exit code: $DOWNLOAD_EXIT_CODE)"
     echo "[deploy] Cannot proceed without assets. Deployment aborted."
     exit 1
   fi
