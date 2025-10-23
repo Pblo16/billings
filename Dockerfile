@@ -1,5 +1,9 @@
 FROM richarvey/nginx-php-fpm:3.1.6
 
+# Instalar herramientas necesarias para el deploy script
+RUN apk add --no-cache curl jq unzip postgresql-dev && \
+    docker-php-ext-install pdo_pgsql
+
 # Copiar configuración de nginx
 COPY conf/nginx-site.conf /etc/nginx/sites-available/default.conf
 
@@ -19,8 +23,5 @@ ENV LOG_CHANNEL stderr
 
 # Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER 1
-
-# Install PostgreSQL extensions
-RUN apk add --no-cache postgresql-dev && docker-php-ext-install pdo_pgsql
 
 CMD ["/start.sh"]
