@@ -1,36 +1,44 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-echo "Running composer"
-composer install --no-dev --working-dir=/var/www/html
+cd /var/www/html
 
-echo "Clearing all caches..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+echo "[deploy] Installing Composer dependencies (no-dev, optimized autoloader)"
+composer install --no-interaction --no-dev --prefer-dist --no-progress --optimize-autoloader
 
-echo "Caching config..."
-php artisan config:cache
+echo "[deploy] Ensuring app key exists"
+if ! php -r 'echo empty(env("APP_KEY")) ? "missing" : "ok";' | grep -q ok; then
+  php artisan key:generate --force
+fi
 
-echo "Caching routes..."
-php artisan route:cache
+echo "[deploy] Ensuring writable directories and storage symlink"
+mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache database
+touch database/database.sqlite || true
+php artisan storage:link || true
+chmod -R ug+rwX storage bootstrap/cache || true
 
-echo "Running migrations..."
-php artisan migrate
+echo "[deploy] Clearing caches"
+php artisan optimize:clear
 
-echo "Seeding database..."
-php artisan db:seed
+echo "[deploy] Running migrations (force)"
+php artisan migrate --force
 
-echo "Permissions..."
-php artisan app:permissions 
+echo "[deploy] Seeding database (force)"
+php artisan db:seed --force || true
 
+echo "[deploy] Applying application permissions"
+php artisan app:permissions || true
 
-echo "Listing routes..."
-php artisan route:list 
+echo "[deploy] Caching configuration, routes, events and views"
+php artisan optimize
 
-echo "Verifying frontend assets directory..."
+echo "[deploy] Listing routes (sanity check)"
+php artisan route:list || true
+
+echo "[deploy] Verifying frontend assets directory..."
 if [ ! -d /var/www/html/public/build/assets ]; then
   echo "ERROR: Frontend assets directory not found! Did you run pnpm build in CI?"
   exit 1
 fi
 
-echo "Deployment completed!"
+echo "[deploy] Deployment completed!"
