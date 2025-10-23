@@ -29,7 +29,10 @@ echo "$RECENT_WORKFLOWS" | jq -r '.workflow_runs[]? | "  - \(.name) | Branch: \(
 
 # Obtener el último workflow run exitoso del branch actual
 echo "[assets] Searching for successful 'CI' workflow on branch '${BRANCH}' (any event)..."
-WORKFLOW_RUN=$(echo "$RECENT_WORKFLOWS" | jq -r ".workflow_runs[] | select(.name == \"CI\" and .head_branch == \"${BRANCH}\" and .status == \"completed\" and .conclusion == \"success\") | .id" | head -n 1)
+WORKFLOW_RUN=$(echo "$RECENT_WORKFLOWS" | jq -r --arg branch "$BRANCH" '.workflow_runs[] | select(.name == "CI" and .head_branch == $branch and .status == "completed" and .conclusion == "success") | .id' | head -n 1)
+
+echo "[assets] DEBUG: jq returned: '${WORKFLOW_RUN}'"
+echo "[assets] DEBUG: Workflow run ID length: ${#WORKFLOW_RUN}"
 
 if [ "$WORKFLOW_RUN" = "null" ] || [ -z "$WORKFLOW_RUN" ]; then
   echo ""
