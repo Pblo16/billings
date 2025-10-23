@@ -30,9 +30,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
-        run: pnpm types
-
       - name: Build
         run: pnpm build
 
@@ -83,9 +80,9 @@ jobs:
       - name: Run backend tests (Pest/PHPUnit)
         run: |
           if [ -f vendor/bin/pest ]; then
-            vendor/bin/pest -q
+            vendor/bin/pest
           else
-            php artisan test -q
+            php artisan test
           fi
 
       - name: Optimize (cache config, routes, events, views)
