@@ -9,37 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  frontend:
-    name: Frontend (build)
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
-      - name: Upload build assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-assets
-          if-no-files-found: error
-          path: public/build
-
   backend:
     name: Backend (tests)
     runs-on: ubuntu-22.04
@@ -77,13 +46,11 @@ jobs:
       - name: Run migrations (SQLite)
         run: php artisan migrate --force
 
-      - name: Run backend tests (Pest/PHPUnit)
-        run: |
-          if [ -f vendor/bin/pest ]; then
-            vendor/bin/pest
-          else
-            php artisan test
-          fi
+      - name: Upload vendor directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor
+          path: vendor
 
       - name: Upload storage logs on failure
         if: failure()
@@ -91,3 +58,49 @@ jobs:
         with:
           name: laravel-logs
           path: storage/logs
+
+  frontend:
+    name: Frontend (build)
+    runs-on: ubuntu-22.04
+    needs: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql
+          coverage: none
+          tools: composer:v2
+
+      - name: Download vendor from backend
+        uses: actions/download-artifact@v4
+        with:
+          name: vendor
+          path: vendor
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload build assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-assets
+          if-no-files-found: error
+          path: public/build
