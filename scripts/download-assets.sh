@@ -16,29 +16,13 @@ fi
 
 BRANCH="${RENDER_GIT_BRANCH:-master}"
 echo "[assets] Looking for workflow runs on branch: $BRANCH"
-echo "[assets] Repository: ${GITHUB_REPOSITORY}"
-echo "[assets] Token length: ${#GITHUB_TOKEN} characters"
 
-# Debug: Mostrar workflows recientes ANTES de buscar
-echo "[assets] DEBUG: Fetching recent workflows from GitHub..."
+# Obtener workflows recientes
 RECENT_WORKFLOWS=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
   "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?per_page=5")
 
-echo "[assets] DEBUG: Recent workflows:"
-echo "$RECENT_WORKFLOWS" | jq -r '.workflow_runs[]? | "  - \(.name) | Branch: \(.head_branch) | Status: \(.status) | Conclusion: \(.conclusion) | Event: \(.event) | ID: \(.id)"'
-
 # Obtener el último workflow run exitoso del branch actual
-echo "[assets] Searching for successful 'CI' workflow on branch '${BRANCH}' (any event)..."
-
-# Debug: Check if jq is working
-echo "[assets] DEBUG: Testing jq with branch variable: '$BRANCH'"
-
 WORKFLOW_RUN=$(echo "$RECENT_WORKFLOWS" | jq -r --arg branch "$BRANCH" '.workflow_runs[] | select(.name == "CI" and .head_branch == $branch and .status == "completed" and .conclusion == "success") | .id' | head -n 1)
-JQ_EXIT_CODE=$?
-
-echo "[assets] DEBUG: jq exit code: $JQ_EXIT_CODE"
-echo "[assets] DEBUG: jq returned: '${WORKFLOW_RUN}'"
-echo "[assets] DEBUG: Workflow run ID length: ${#WORKFLOW_RUN}"
 
 if [ "$WORKFLOW_RUN" = "null" ] || [ -z "$WORKFLOW_RUN" ]; then
   echo ""
@@ -75,14 +59,13 @@ fi
 echo "[assets] Downloading artifact: $ARTIFACT_ID"
 
 # Descargar el artifact
-curl -L -H "Authorization: token ${GITHUB_TOKEN}" \
+curl -sL -H "Authorization: token ${GITHUB_TOKEN}" \
   -H "Accept: application/vnd.github.v3+json" \
   "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
   -o /tmp/build-assets.zip
 
 echo "[assets] Extracting assets..."
-unzip -q /tmp/build-assets.zip -d /var/www/html/public/
+unzip -o -q /tmp/build-assets.zip -d /var/www/html/public/
 rm /tmp/build-assets.zip
 
 echo "[assets] Assets downloaded successfully!"
-ls -lah /var/www/html/public/build/

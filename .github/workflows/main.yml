@@ -46,6 +46,9 @@ jobs:
       - name: Run migrations (SQLite)
         run: php artisan migrate --force
 
+      - name: Run tests
+        run: php artisan test
+
       - name: Upload vendor directory
         uses: actions/upload-artifact@v4
         with:
@@ -63,6 +66,8 @@ jobs:
     name: Frontend (build)
     runs-on: ubuntu-22.04
     needs: backend
+    # Solo construir assets cuando es push (deployment), no en PRs
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
